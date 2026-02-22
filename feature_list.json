@@ -1,0 +1,380 @@
+{
+  "requirements": [
+    {
+      "id": "RF-001",
+      "title": "Autenticação e SSO via OAuth2",
+      "description": "Implementar autenticação via OAuth2 com FormBuilder Hub",
+      "tests": [
+        {
+          "category": "functional",
+          "description": "Login via Hub redireciona corretamente",
+          "steps": ["Acessar /admin sem estar logado", "Verificar redirecionamento para Hub OAuth", "Fazer login no Hub", "Verificar redirecionamento de volta para /admin"],
+          "passes": "pending_manual_test"
+        },
+        {
+          "category": "functional",
+          "description": "Token contém organizationId",
+          "steps": ["Fazer login via Hub", "Inspecionar token JWT", "Verificar presença de organizationId", "Verificar presença de role"],
+          "passes": "pending_manual_test"
+        },
+        {
+          "category": "security",
+          "description": "Middleware protege rotas admin",
+          "steps": ["Tentar acessar /admin/enquetes sem token", "Verificar redirecionamento para login", "Fazer login", "Verificar acesso permitido"],
+          "passes": "pending_manual_test"
+        },
+        {
+          "category": "functional",
+          "description": "Rotas públicas acessíveis sem login",
+          "steps": ["Acessar /r/[hash] sem login", "Verificar acesso permitido", "Acessar /vote/[hash]", "Verificar renderização da landing page"],
+          "passes": "pending_manual_test"
+        }
+      ]
+    },
+    {
+      "id": "RF-002",
+      "title": "Gestão de Segmentos (Categorias)",
+      "description": "CRUD de segmentos com hierarquia de 2 níveis",
+      "tests": [
+        {
+          "category": "functional",
+          "description": "Criar segmento pai",
+          "steps": ["Acessar /admin/segmentos", "Clicar em 'Novo Segmento'", "Preencher nome e slug", "Salvar", "Verificar segmento na lista"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Criar segmento filho",
+          "steps": ["Criar segmento pai 'Alimentação'", "Criar segmento filho 'Restaurantes' com pai=Alimentação", "Verificar hierarquia exibida"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Editar segmento",
+          "steps": ["Selecionar segmento existente", "Alterar nome e cor", "Salvar", "Verificar alterações aplicadas"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Excluir segmento sem estabelecimentos",
+          "steps": ["Criar segmento sem estabelecimentos", "Clicar em excluir", "Confirmar", "Verificar remoção"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Impedir exclusão de segmento com estabelecimentos",
+          "steps": ["Criar segmento com estabelecimentos vinculados", "Tentar excluir", "Verificar mensagem de erro"],
+          "passes": false
+        },
+        {
+          "category": "style",
+          "description": "Drag and drop para reordenar",
+          "steps": ["Acessar lista de segmentos", "Arrastar segmento para nova posição", "Verificar ordem atualizada"],
+          "passes": false
+        }
+      ]
+    },
+    {
+      "id": "RF-003",
+      "title": "Gestão de Estabelecimentos",
+      "description": "CRUD de estabelecimentos com upload de logo e múltiplos segmentos",
+      "tests": [
+        {
+          "category": "functional",
+          "description": "Criar estabelecimento manualmente",
+          "steps": ["Acessar /admin/estabelecimentos", "Clicar 'Novo'", "Preencher nome, segmentos, contatos", "Upload de logo", "Salvar", "Verificar na lista"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Associar múltiplos segmentos",
+          "steps": ["Criar estabelecimento", "Selecionar 2+ segmentos", "Salvar", "Verificar segmentos associados"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Upload de logo para MinIO",
+          "steps": ["Criar estabelecimento", "Fazer upload de imagem", "Verificar URL do MinIO gerada", "Verificar imagem exibida"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Importar estabelecimentos via CSV",
+          "steps": ["Acessar /admin/estabelecimentos/importar", "Upload CSV válido", "Mapear colunas", "Importar", "Verificar estabelecimentos criados"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Validar duplicatas na importação",
+          "steps": ["Importar CSV com nomes duplicados", "Verificar warning exibido", "Escolher ação (mesclar/manter)", "Confirmar importação"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Ativar/desativar estabelecimento",
+          "steps": ["Selecionar estabelecimento ativo", "Clicar 'Desativar'", "Verificar status alterado", "Verificar que não aparece em formulários ativos"],
+          "passes": true
+        }
+      ]
+    },
+    {
+      "id": "RF-004",
+      "title": "Gestão de Leads",
+      "description": "CRUD de leads com sistema de tags e detecção de duplicatas",
+      "tests": [
+        {
+          "category": "functional",
+          "description": "Criar lead manualmente",
+          "steps": ["Acessar /admin/leads", "Clicar 'Novo Lead'", "Preencher nome, whatsapp, email", "Adicionar tags", "Salvar", "Verificar na lista"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Sistema de tags com autocomplete",
+          "steps": ["Criar lead", "Digitar tag existente", "Verificar autocomplete", "Criar nova tag", "Verificar tag criada"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Detecção de duplicatas por WhatsApp",
+          "steps": ["Criar lead with WhatsApp X", "Tentar criar outro lead com mesmo WhatsApp", "Verificar modal de duplicata", "Escolher ação (mesclar/manter)"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Importar leads via CSV",
+          "steps": ["Acessar /admin/leads/importar", "Upload CSV válido", "Mapear colunas", "Importar", "Verificar leads criados"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Filtrar leads por tags",
+          "steps": ["Criar leads com tags diferentes", "Aplicar filtro por tag", "Verificar apenas leads com tag exibidos"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Opt-out de lead",
+          "steps": ["Selecionar lead", "Marcar como opt-out", "Verificar status alterado", "Verificar que não aparece em campanhas"],
+          "passes": true
+        }
+      ]
+    },
+    {
+      "id": "RF-005",
+      "title": "Integração com FormBuilder Hub",
+      "description": "Consumir formulários do Hub via API pública",
+      "tests": [
+        {
+          "category": "integration",
+          "description": "Buscar schema de formulário",
+          "steps": ["Configurar API key do Hub", "Fazer request GET /api/public/v1/forms/:publicId", "Verificar schema retornado", "Verificar storageMode=LOCAL"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Renderizar formulário do Hub",
+          "steps": ["Buscar schema do Hub", "Renderizar com RemoteForm", "Verificar campos exibidos", "Verificar validações aplicadas"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Campo customizado de Estabelecimento",
+          "steps": ["Formulário com campo custom-establishment", "Renderizar dropdown com estabelecimentos", "Filtrar por segmento", "Selecionar estabelecimento"],
+          "passes": true
+        },
+        {
+          "category": "integration",
+          "description": "Enviar telemetria para Hub",
+          "steps": ["Visualizar formulário", "Verificar POST /api/public/v1/analytics com eventType=view", "Submeter formulário", "Verificar telemetria de submission"],
+          "passes": true
+        }
+      ]
+    },
+    {
+      "id": "RF-006",
+      "title": "Criação de Enquetes",
+      "description": "CRUD de enquetes vinculadas a formulários do Hub",
+      "tests": [
+        {
+          "category": "functional",
+          "description": "Criar enquete selecionando formulário do Hub",
+          "steps": ["Acessar /admin/enquetes", "Clicar 'Nova Enquete'", "Selecionar formulário do Hub", "Preencher título e descrição", "Salvar"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Configurar personalização visual",
+          "steps": ["Criar enquete", "Acessar configurações visuais", "Upload logo", "Definir cores", "Salvar", "Verificar preview"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Publicar enquete",
+          "steps": ["Criar enquete em rascunho", "Clicar 'Publicar'", "Confirmar", "Verificar status=PUBLICADA"],
+          "passes": true
+        },
+        {
+          "category": "functional",
+          "description": "Pausar enquete ativa",
+          "steps": ["Publicar enquete", "Clicar 'Pausar'", "Verificar status=PAUSADA", "Verificar links não funcionam"],
+          "passes": true
+        }
+      ]
+    },
+    {
+      "id": "RF-007",
+      "title": "Campanhas WhatsApp",
+      "description": "Criação e disparo de campanhas com tracking individual",
+      "tests": [
+        {
+          "category": "functional",
+          "description": "Criar campanha com wizard",
+          "steps": ["Selecionar enquete", "Clicar 'Nova Campanha'", "Seguir wizard (formulário, leads, mensagem, agendamento)", "Salvar"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Segmentar leads por tags",
+          "steps": ["Criar campanha", "Selecionar segmentação por tags", "Escolher tags", "Verificar preview de quantidade"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Template de mensagem com merge fields",
+          "steps": ["Criar campanha", "Escrever template com {{nome}}, {{link_unico}}", "Verificar preview com dados reais"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Gerar tracking links únicos",
+          "steps": ["Criar campanha com 10 leads", "Iniciar campanha", "Verificar 10 tracking links gerados", "Verificar hashes únicos"],
+          "passes": false
+        },
+        {
+          "category": "integration",
+          "description": "Enviar mensagens via Evolution API",
+          "steps": ["Configurar Evolution API", "Iniciar campanha", "Verificar requisições para API", "Verificar status atualizado"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Agendar campanha",
+          "steps": ["Criar campanha", "Definir data/hora futura", "Salvar", "Verificar status=AGENDADA", "Verificar job criado no BullMQ"],
+          "passes": false
+        }
+      ]
+    },
+    {
+      "id": "RF-008",
+      "title": "Landing Page de Votação",
+      "description": "Página pública personalizada para receber votos",
+      "tests": [
+        {
+          "category": "functional",
+          "description": "Acessar via tracking link",
+          "steps": ["Gerar tracking link", "Acessar /r/[hash]", "Verificar redirecionamento para /vote/[hash]", "Verificar visualização registrada"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Renderizar formulário personalizado",
+          "steps": ["Acessar landing page", "Verificar logo da organização", "Verificar cores customizadas", "Verificar formulário do Hub renderizado"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Validar hash único",
+          "steps": ["Acessar com hash inválido", "Verificar erro 404", "Acessar com hash expirado", "Verificar mensagem de expiração"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Impedir voto duplicado",
+          "steps": ["Votar com hash X", "Tentar votar novamente com mesmo hash", "Verificar mensagem 'Já votou'"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Submeter voto e salvar localmente",
+          "steps": ["Preencher formulário", "Submeter", "Verificar resposta salva no banco local", "Verificar votos extraídos"],
+          "passes": false
+        },
+        {
+          "category": "style",
+          "description": "Responsividade mobile",
+          "steps": ["Acessar landing page no mobile", "Verificar layout adaptado", "Verificar formulário utilizável"],
+          "passes": false
+        }
+      ]
+    },
+    {
+      "id": "RF-009",
+      "title": "Resultados e Rankings",
+      "description": "Dashboard de resultados com rankings por segmento",
+      "tests": [
+        {
+          "category": "functional",
+          "description": "Visualizar métricas gerais",
+          "steps": ["Acessar /admin/enquetes/[id]/resultados", "Verificar total de respostas", "Verificar taxa de conversão", "Verificar tempo médio"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Ranking por segmento",
+          "steps": ["Acessar resultados", "Selecionar segmento", "Verificar top 10 estabelecimentos", "Verificar contagem de votos e percentual"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Gráfico de barras comparativo",
+          "steps": ["Visualizar ranking", "Verificar gráfico de barras", "Verificar cores por estabelecimento"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Exportar resultados CSV",
+          "steps": ["Acessar resultados", "Clicar 'Exportar CSV'", "Verificar download", "Verificar dados tabulados"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Exportar resultados Excel",
+          "steps": ["Acessar resultados", "Clicar 'Exportar Excel'", "Verificar múltiplas abas por segmento", "Verificar formatação"],
+          "passes": false
+        }
+      ]
+    },
+    {
+      "id": "RF-010",
+      "title": "Controle de Limites (Spoke Subscription)",
+      "description": "Validar limites do plano antes de criar recursos",
+      "tests": [
+        {
+          "category": "functional",
+          "description": "Buscar configuração do plano",
+          "steps": ["Fazer request para Hub /api/internal/spokes/premio-destaque/config", "Verificar limites retornados", "Verificar features habilitadas"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Validar limite de leads",
+          "steps": ["Atingir limite de leads do plano", "Tentar criar novo lead", "Verificar erro de limite", "Verificar mensagem de upgrade"],
+          "passes": false
+        },
+        {
+          "category": "functional",
+          "description": "Validar limite de campanhas",
+          "steps": ["Atingir limite de campanhas/mês", "Tentar criar nova campanha", "Verificar bloqueio", "Verificar sugestão de upgrade"],
+          "passes": false
+        },
+        {
+          "category": "style",
+          "description": "Indicador visual de limites",
+          "steps": ["Acessar dashboard", "Verificar indicadores de uso", "Verificar barra de progresso", "Verificar alerta próximo ao limite"],
+          "passes": false
+        }
+      ]
+    }
+  ]
+}

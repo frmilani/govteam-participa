@@ -1,0 +1,574 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model User {
+  id               String    @id @default(cuid())
+  name             String?
+  email            String    @unique
+  emailVerified    DateTime?
+  image            String?
+  organizationId   String?
+  organizationName String?
+  role             String?
+  unit_id          String?
+  isPlatformAdmin  Boolean   @default(false)
+  memberships      Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  accounts         Account[]
+  sessions         Session[]
+}
+
+model Segmento {
+  id                   String                    @id @default(cuid())
+  organizationId       String
+  unitId               String?
+  nome                 String
+  slug                 String
+  paiId                String?
+  cor                  String?                   @default("#4F46E5")
+  icone                String?                   @default("Folder")
+  ordem                Int                       @default(0)
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  estabelecimentos     EstabelecimentoSegmento[]
+  pai                  Segmento?                 @relation("Hierarquia", fields: [paiId], references: [id])
+  filhos               Segmento[]                @relation("Hierarquia")
+  enquetes             Enquete[]
+  // Task 10: Relação com TemplateQualidade (AC: 12)
+  templateQualidadeId  String?
+  templateQualidade    TemplateQualidade?        @relation(fields: [templateQualidadeId], references: [id])
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([unitId])
+}
+
+model Estabelecimento {
+  id             String                    @id @default(cuid())
+  organizationId String
+  unitId         String?
+  nome           String
+  logoUrl        String?
+  descricao      String?
+  endereco       String?
+  telefone       String?
+  whatsapp       String?
+  website        String?
+  instagram      String?
+  facebook       String?
+  alias          String?
+  ativo          Boolean                   @default(true)
+  // Task 2: Campos para Motor Universal (AC: 2, 3)
+  tipo           TipoEntidade              @default(EMPRESA)
+  metadados      Json?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  segmentos      EstabelecimentoSegmento[]
+  votos          VotoEstabelecimento[]
+  enquetes       Enquete[]
+
+  @@index([organizationId])
+  @@index([organizationId, ativo])
+  @@index([unitId])
+  // Task 2: Índice composto por tipo (AC: 4)
+  @@index([organizationId, tipo])
+}
+
+model EstabelecimentoSegmento {
+  estabelecimentoId String
+  segmentoId        String
+  estabelecimento   Estabelecimento @relation(fields: [estabelecimentoId], references: [id], onDelete: Cascade)
+  segmento          Segmento        @relation(fields: [segmentoId], references: [id], onDelete: Cascade)
+
+  @@id([estabelecimentoId, segmentoId])
+}
+
+model Lead {
+  id                String            @id @default(cuid())
+  organizationId    String
+  unitId            String?
+  nome              String
+  sexo              Sexo?
+  email             String?
+  telefone          String?
+  whatsapp          String
+  facebook          String?
+  instagram         String?
+  statusVerificacao VerificacaoStatus @default(NAO_VERIFICADO)
+  optOut            Boolean           @default(false)
+  optOutEm          DateTime?
+  origem            OrigemLead        @default(MANUAL)
+  consentimentoEm   DateTime?
+  criadoEm          DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  ultimaInteracao   DateTime?
+  tags              LeadTag[]
+  respostas         Resposta[]
+  trackingLinks     TrackingLink[]
+  cpf                 String?
+  cupons              Int               @default(0)
+  numerosSorte        NumeroSorte[]
+
+  tipoPessoa          TipoPessoa        @default(FISICA)
+  cnpj                String?
+  // Task 7: Dados demográficos para qualificação de lead (AC: 9)
+  dadosDemograficos   Json?
+
+  @@index([organizationId])
+  @@index([organizationId, whatsapp])
+  @@index([organizationId, email])
+  @@unique([organizationId, cpf])
+  @@index([unitId])
+}
+
+
+model Tag {
+  id             String    @id @default(cuid())
+  organizationId String
+  nome           String
+  cor            String    @default("#4F46E5")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  leads          LeadTag[]
+
+  @@unique([organizationId, nome])
+  @@index([organizationId])
+}
+
+model LeadTag {
+  leadId String
+  tagId  String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([leadId, tagId])
+}
+
+
+model Enquete {
+  id                  String        @id @default(cuid())
+  organizationId      String
+  unitId              String?
+  titulo              String
+  descricao           String?
+  formPublicId        String
+  hubFormId           String
+  configVisual        Json
+  paginaAgradecimento Json
+  status              EnqueteStatus @default(RASCUNHO)
+  modoAcesso          ModoAcesso    @default(HIBRIDO)
+  linkExpiracaoDias   Int           @default(30)
+  criadoPor           String
+  criadoEm            DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  publicadoEm         DateTime?
+  encerramentoEm      DateTime?
+  dataInicio          DateTime?
+  dataFim             DateTime?
+  campanhas           Campanha[]
+  respostas           Resposta[]
+  segmentos           Segmento[]
+  estabelecimentos    Estabelecimento[]
+  securityLevel       SecurityLevel @default(NONE)
+  minCompleteness     Int           @default(70)
+  exigirIdentificacao Boolean       @default(true)
+  exigirCpf           Boolean       @default(false)
+  
+  // Lucky Numbers (Sorteios Federal)
+  usarNumerosSorte    Boolean       @default(false)
+  digitosNumerosSorte Int           @default(5) // 4 or 5
+  numerosSorte        NumeroSorte[]
+  
+  // Analytics Cache & Audit
+  totalSuspicious     Int           @default(0)
+  totalInvalid        Int           @default(0)
+
+  regulamento         String?       @db.Text
+  politicaPrivacidade String?       @db.Text
+  termosLgpd          String?       @db.Text
+
+  // Premiação & Ganhadores
+  usarPremiacao       Boolean       @default(false)
+  quantidadePremiados Int           @default(0)
+  configPremiacao     Json?         @default("[]") // [{ level: 1, description: "" }]
+  premiacaoStatus      ResultadosStatus @default(EM_CONFERENCIA)
+
+  // Resultados
+  resultadosStatus    ResultadosStatus @default(EM_CONFERENCIA)
+  configResultados    Json?            @default("{\"exibirVotos\": true, \"exibirPercentual\": true}")
+
+  // Task 8: Campos do Motor Universal de Pesquisa (AC: 10)
+  tipoPesquisa           String  @default("premiacao")
+  modoColeta             String  @default("recall-assistido")
+  incluirQualidade       Boolean @default(false)
+  modoDistribuicao       String  @default("grupo")
+  maxCategoriasPorEleitor Int?
+  randomizarOpcoes       Boolean @default(true)
+  configPesquisa         Json?
+
+  @@unique([organizationId, formPublicId])
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([unitId])
+}
+
+model SpokeConfig {
+  id                   String   @id @default("global")
+  organizationId       String   @unique
+  activeDesignSystemId String?
+  updatedAt            DateTime @updatedAt
+}
+
+// ... (Campanha and TrackingLink models remain unchanged)
+
+model Campanha {
+  id                String         @id @default(cuid())
+  organizationId    String
+  unitId            String?
+  nome              String
+  enqueteId         String
+  templateMensagem  String?
+  mensagens         Json?          // Array of messages: { type: 'text'|'image'|'audio'|'video'|'menu'|'interactive', content: string, mediaUrl?: string, delayAfter?: number }
+  midiaUrl          String?
+  segmentacao       Json?
+  agendadoPara      DateTime?
+  intervaloMin      Int            @default(5)
+  intervaloMax      Int            @default(15)
+  provider          String         @default("EVOLUTION")
+  status            CampanhaStatus @default(RASCUNHO)
+  totalLeads        Int            @default(0)
+  totalEnviados     Int            @default(0)
+  totalVisualizados Int            @default(0)
+  totalRespondidos  Int            @default(0)
+  totalFalhados     Int            @default(0)
+  criadoEm          DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  iniciadoEm        DateTime?
+  finalizadoEm      DateTime?
+  criadoPor         String
+  enquete           Enquete        @relation(fields: [enqueteId], references: [id])
+  trackingLinks     TrackingLink[]
+  instances         CampanhaInstance[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([unitId])
+}
+
+model TrackingLink {
+  id            String     @id @default(cuid())
+  campanhaId    String
+  leadId        String
+  hash          String     @unique
+  formPublicId  String
+  enviadoEm     DateTime?
+  visualizadoEm DateTime?
+  respondidoEm  DateTime?
+  expiraEm      DateTime
+  status        LinkStatus @default(NAO_ENVIADO)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  resposta      Resposta?
+  campanha      Campanha   @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
+  lead          Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([hash])
+  @@index([campanhaId, status])
+}
+
+model Resposta {
+  id                    String                @id @default(cuid())
+  enqueteId             String
+  formPublicId          String
+  leadId                String?
+  trackingLinkId        String?               @unique
+  ipAddress             String?
+  userAgent             String?
+  dadosJson             Json
+  tempoRespostaSegundos Int?
+  respondidoEm          DateTime              @default(now())
+  enquete               Enquete               @relation(fields: [enqueteId], references: [id])
+  lead                  Lead?                 @relation(fields: [leadId], references: [id])
+  trackingLink          TrackingLink?         @relation(fields: [trackingLinkId], references: [id], onDelete: Cascade)
+  votos                 VotoEstabelecimento[]
+  percentualConclusao   Float                 @default(0)
+  votoValido            Boolean               @default(false)
+  otpVerified           Boolean               @default(false)
+  // Task 9: Relações para Motor de Qualidade e Voto Livre (AC: 11)
+  respostasQualidade    RespostaQualidade[]
+  votosLivres           VotoLivre[]
+
+  // Audit Fields
+  status                RespostaStatus        @default(VALID)
+  fraudScore            Int?                  @default(0)
+  fraudReason           String?
+  reviewedBy            String?
+  reviewedAt            DateTime?
+
+  @@index([enqueteId])
+  @@index([respondidoEm])
+  @@index([enqueteId, status])
+  @@index([ipAddress])
+}
+
+// ... (VotoEstabelecimento and VerificationToken models remain unchanged)
+
+model VotoEstabelecimento {
+  id                String          @id @default(cuid())
+  respostaId        String
+  estabelecimentoId String
+  segmentoId        String
+  campoId           String
+  criadoEm          DateTime        @default(now())
+  estabelecimento   Estabelecimento @relation(fields: [estabelecimentoId], references: [id], onDelete: Cascade)
+  resposta          Resposta        @relation(fields: [respostaId], references: [id], onDelete: Cascade)
+
+  @@index([estabelecimentoId, segmentoId])
+  @@index([segmentoId, criadoEm])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model NumeroSorte {
+  id        String   @id @default(cuid())
+  numero    Int
+  enqueteId String
+  leadId    String
+  isWinner  Boolean  @default(false)
+  prizeName String?
+  criadoEm  DateTime @default(now())
+  enquete   Enquete  @relation(fields: [enqueteId], references: [id], onDelete: Cascade)
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([enqueteId, numero])
+  @@index([enqueteId])
+  @@index([leadId])
+}
+
+enum Sexo {
+  M
+  F
+  OUTRO
+  NAO_INFORMAR
+}
+
+enum TipoPessoa {
+  FISICA
+  JURIDICA
+}
+
+enum VerificacaoStatus {
+  NAO_VERIFICADO
+  VERIFICADO
+  INVALIDO
+}
+
+enum OrigemLead {
+  MANUAL
+  IMPORTACAO
+  FORMULARIO_WEB
+}
+
+enum EnqueteStatus {
+  RASCUNHO
+  PUBLICADA
+  PAUSADA
+  ENCERRADA
+}
+
+enum ModoAcesso {
+  RESTRITO_HASH
+  PUBLICO
+  HIBRIDO
+}
+
+enum CampanhaStatus {
+  RASCUNHO
+  AGENDADA
+  EM_ANDAMENTO
+  PAUSADA
+  CONCLUIDA
+  CANCELADA
+}
+
+enum LinkStatus {
+  NAO_ENVIADO
+  ENVIADO
+  VISUALIZADO
+  RESPONDIDO
+  EXPIRADO
+}
+
+enum RespostaStatus {
+  VALID
+  SUSPICIOUS
+  INVALID
+  MANUAL_REVIEW
+}
+
+enum SecurityLevel {
+  NONE
+  HIGH
+}
+
+enum ResultadosStatus {
+  EM_CONFERENCIA
+  PUBLICADO
+  CANCELADO
+}
+
+// Task 1: Enum para suporte a múltiplos tipos de entidade (AC: 1)
+enum TipoEntidade {
+  EMPRESA
+  CANDIDATO
+  PROPOSTA
+  MARCA
+  DIMENSAO
+  SERVICO_PUBLICO
+  OUTRO
+}
+
+// Task 3: Template de Qualidade para Pesquisas (AC: 5)
+model TemplateQualidade {
+  id             String              @id @default(cuid())
+  organizationId String
+  nome           String
+  perguntas      PerguntaQualidade[]
+  segmentos      Segmento[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([organizationId])
+}
+
+// Task 4: Perguntas de Qualidade com cascade (AC: 6)
+model PerguntaQualidade {
+  id                  String            @id @default(cuid())
+  templateQualidadeId String
+  templateQualidade   TemplateQualidade @relation(fields: [templateQualidadeId], references: [id], onDelete: Cascade)
+  texto               String
+  tipo                String            // rating-5 | rating-10 | likert | sim-nao | texto
+  obrigatorio         Boolean           @default(false)
+  opcoes              Json?             // ["Péssimo","Ruim","Regular","Bom","Excelente"]
+  ordem               Int               @default(0)
+}
+
+// Task 5: Respostas de Qualidade vinculadas a Resposta (AC: 7)
+model RespostaQualidade {
+  id          String   @id @default(cuid())
+  respostaId  String
+  resposta    Resposta @relation(fields: [respostaId], references: [id], onDelete: Cascade)
+  perguntaId  String
+  categoriaId String
+  valor       String
+  criadoEm   DateTime @default(now())
+
+  @@index([respostaId])
+  @@index([categoriaId])
+}
+
+// Task 6: Voto Livre com análise fonética para consolidação (AC: 8)
+model VotoLivre {
+  id              String   @id @default(cuid())
+  respostaId      String
+  resposta        Resposta @relation(fields: [respostaId], references: [id], onDelete: Cascade)
+  categoriaId     String
+  textoOriginal   String
+  chavesFoneticas String[]
+  consolidadoEmId String?
+  criadoEm       DateTime @default(now())
+
+  @@index([respostaId])
+  @@index([categoriaId])
+  @@index([chavesFoneticas])
+}
+
+
+
+model WhatsappInstance {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  number         String?
+  instanceId     String   @unique
+  apiKey         String?
+  token          String?
+  status         InstanceStatus @default(DISCONNECTED)
+  qrcode         String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  campanhas      CampanhaInstance[]
+
+  @@index([organizationId])
+}
+
+enum InstanceStatus {
+  CONNECTING
+  CONNECTED
+  DISCONNECTED
+}
+
+model CampanhaInstance {
+  campanhaId String
+  instanceId String
+  weight     Int @default(100)
+
+  campanha   Campanha         @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
+  instance   WhatsappInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  @@id([campanhaId, instanceId])
+}
+
+model DistribuicaoRotativa {
+  id          String   @id @default(cuid())
+  enqueteId   String
+  categoriaId String
+  totalAcessos Int     @default(0)
+  @@unique([enqueteId, categoriaId])
+  @@index([enqueteId])
+}

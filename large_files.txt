@@ -1,0 +1,22 @@
+
+FullName                                                                                   LineCount
+--------                                                                                   ---------
+C:\Dev\aios\spokes\premio-destaque\src\lib\icons.tsx                                             731
+C:\Dev\aios\spokes\premio-destaque\src\components\voting\GamifiedGate.tsx                        589
+C:\Dev\aios\spokes\premio-destaque\src\lib\vote-templates.ts                                     549
+C:\Dev\aios\spokes\premio-destaque\src\components\admin\estabelecimento-form.tsx                 487
+C:\Dev\aios\spokes\premio-destaque\src\app\admin\whatsapp\page.tsx                               460
+C:\Dev\aios\spokes\premio-destaque\src\lib\campanhas\campanha-service.ts                         446
+C:\Dev\aios\spokes\premio-destaque\src\components\admin\campanha-form.tsx                        434
+C:\Dev\aios\spokes\premio-destaque\src\app\admin\enquetes\page.tsx                               418
+C:\Dev\aios\spokes\premio-destaque\src\components\admin\enquete-form.tsx                         380
+C:\Dev\aios\spokes\premio-destaque\src\lib\leads\lead-service.ts                                 359
+C:\Dev\aios\spokes\premio-destaque\src\lib\analytics\analytics-service.ts                        355
+C:\Dev\aios\spokes\premio-destaque\src\components\admin\import-leads-wizard.tsx                  351
+C:\Dev\aios\spokes\premio-destaque\src\components\admin\import-estabelecimentos-wizard.tsx       345
+C:\Dev\aios\spokes\premio-destaque\src\components\voting\ThankYouScreen.tsx                      344
+C:\Dev\aios\spokes\premio-destaque\src\components\admin\lead-form.tsx                            335
+C:\Dev\aios\spokes\premio-destaque\src\components\analytics\ModernFunnel.tsx                     306
+C:\Dev\aios\spokes\premio-destaque\src\app\admin\campanhas\page.tsx                              304
+C:\Dev\aios\spokes\premio-destaque\src\app\admin\leads\page.tsx                                  302
+

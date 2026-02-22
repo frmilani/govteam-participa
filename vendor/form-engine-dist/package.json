@@ -1,0 +1,56 @@
+{
+  "name": "@frmilani/form-engine",
+  "version": "0.1.4",
+  "main": "./form-renderer-package-entry.js",
+  "module": "./form-renderer-package-entry.mjs",
+  "types": "./form-renderer-package-entry.d.ts",
+  "style": "./styles.css",
+  "exports": {
+    ".": {
+      "types": "./form-renderer-package-entry.d.ts",
+      "import": "./form-renderer-package-entry.mjs",
+      "require": "./form-renderer-package-entry.js"
+    },
+    "./styles.css": "./styles.css"
+  },
+  "peerDependencies": {
+    "@auth/prisma-adapter": "^2.11.1",
+    "@aws-sdk/client-s3": "^3.958.0",
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/sortable": "^8.0.0",
+    "@frmilani/form-engine": "file:./dist-package",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/client": "^5.22.0",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tanstack/react-query": "^5.60.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.0.0",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.23.26",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.460.0",
+    "nanoid": "^5.1.6",
+    "next": "15.0.3",
+    "next-auth": "^5.0.0-beta.30",
+    "react": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react-hook-form": "^7.53.2",
+    "recharts": "^2.15.4",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss": "^4.0.0",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.23.8",
+    "zustand": "^5.0.1"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": "https://github.com/frmilani/formbuilder.git"
+}

@@ -1,0 +1,73 @@
+
+> premio-destaque@1.0.0 test
+> vitest run
+
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Dev/govteam/spokes/premio-destaque[39m
+
+[90mstdout[2m | tests\setup.ts:76:9[22m[39m
+✅ Test environment initialized (Prêmio Destaque Spoke)
+
+[90mstdout[2m | tests\setup.ts:76:9[22m[39m
+✅ Test environment initialized (Prêmio Destaque Spoke)
+
+[90mstdout[2m | tests\setup.ts:76:9[22m[39m
+✅ Test environment initialized (Prêmio Destaque Spoke)
+
+[90mstdout[2m | tests\setup.ts:76:9[22m[39m
+✅ Test environment initialized (Prêmio Destaque Spoke)
+
+[90mstdout[2m | tests\setup.ts:76:9[22m[39m
+✅ Test environment initialized (Prêmio Destaque Spoke)
+
+[90mstdout[2m | tests\setup.ts:76:9[22m[39m
+✅ Test environment initialized (Prêmio Destaque Spoke)
+
+[90mstdout[2m | tests\setup.ts:76:9[22m[39m
+✅ Test environment initialized (Prêmio Destaque Spoke)
+
+[90mstdout[2m | tests\setup.ts:76:9[22m[39m
+✅ Test environment initialized (Prêmio Destaque Spoke)
+
+ [32m✓[39m tests/unit/hub-integration/resource-registry.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/hub-integration/hub-permissions.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/estabelecimentos.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+[90mstdout[2m | src/lib/distribuicao/distribuicao-service.spec.ts[2m > [22m[2mDistribuicaoService[2m > [22m[2mshould return all categories if mode is "todas"[22m[39m
+[DISTRIBUICAO] modo=todas enqueteId=enq1 categorias=[cat1,cat2,cat3,cat4,cat5] leadId=anonimo
+
+[90mstdout[2m | src/lib/distribuicao/distribuicao-service.spec.ts[2m > [22m[2mDistribuicaoService[2m > [22m[2mshould filter by groups if mode is "grupo" and there are groups in campanhas config[22m[39m
+[DISTRIBUICAO] modo=grupo enqueteId=enq1 categorias=[cat2] leadId=anonimo
+
+[90mstdout[2m | src/lib/distribuicao/distribuicao-service.spec.ts[2m > [22m[2mDistribuicaoService[2m > [22m[2mshould return exactly one category if mode is "individual"[22m[39m
+[DISTRIBUICAO] modo=individual enqueteId=enq1 categorias=[cat3] leadId=anonimo
+
+[90mstdout[2m | src/lib/distribuicao/distribuicao-service.spec.ts[2m > [22m[2mDistribuicaoService[2m > [22m[2mshould return deterministically random categories for the same inputs (Aleatorio)[22m[39m
+[DISTRIBUICAO] modo=aleatorio enqueteId=enq1 categorias=[cat5,cat2] leadId=lead-same-1
+[DISTRIBUICAO] modo=aleatorio enqueteId=enq1 categorias=[cat5,cat2] leadId=lead-same-1
+[DISTRIBUICAO] modo=aleatorio enqueteId=enq1 categorias=[cat5,cat1] leadId=lead-diff-2
+
+[90mstdout[2m | src/lib/distribuicao/distribuicao-service.spec.ts[2m > [22m[2mDistribuicaoService[2m > [22m[2mshould handle round-robin correctly in "rotativo" mode[22m[39m
+[DISTRIBUICAO] modo=rotativo enqueteId=enq1 categorias=[cat4,cat5] leadId=anonimo
+
+ [32m✓[39m src/lib/distribuicao/distribuicao-service.spec.ts [2m ([22m[2m6 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+[90mstdout[2m | tests/unit/enquetes.test.ts[2m > [22m[2mEnqueteService[2m > [22m[2mupdateEnquete[2m > [22m[2mshould update an existing enquete[22m[39m
+[EnqueteService.updateEnquete] Tentando atualizar enquete: { id: [32m'enq-1'[39m, organizationId: [32m'org-123'[39m }
+
+ [32m✓[39m tests/unit/enquetes.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/segmentos.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/leads.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+[90mstdout[2m | src\lib\hub-api.ts:9:9[22m[39m
+[HubAPI] Configuração Hub-to-Spoke: {
+  url: [32m'http://localhost:3000'[39m,
+  formbuilderUrl: [32m'http://localhost:3005'[39m,
+  clientId: [32m'premio-destaque'[39m,
+  hasSecret: [33mtrue[39m
+}
+
+ [32m✓[39m tests/unit/campanhas.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 3[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m45 passed[39m[22m[90m (45)[39m
+[2m   Start at [22m 13:19:59
+[2m   Duration [22m 3.79s[2m (transform 376ms, setup 1.21s, collect 3.17s, tests 51ms, environment 5.90s, prepare 1.04s)[22m
+

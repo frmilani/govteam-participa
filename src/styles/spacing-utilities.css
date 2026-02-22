@@ -1,0 +1,71 @@
+/* ===========================================
+   Design System Semantic Spacing Utilities
+   These consume --spacing-{group}-{size} CSS vars
+   emitted by PlatformThemeProvider / designSystemToThemeConfig
+   
+   Usage: className="p-component-md gap-ds-lg py-section-sm"
+   All utilities work with Tailwind v4 variants: hover:, lg:, etc.
+   =========================================== */
+
+/* ── Component spacing (padding for buttons, inputs, cards) ── */
+@utility p-component-xs { padding: var(--spacing-component-xs, 0.25rem); }
+@utility p-component-sm { padding: var(--spacing-component-sm, 0.5rem); }
+@utility p-component-md { padding: var(--spacing-component-md, 1rem); }
+@utility p-component-lg { padding: var(--spacing-component-lg, 1.5rem); }
+@utility p-component-xl { padding: var(--spacing-component-xl, 2rem); }
+@utility px-component-xs { padding-inline: var(--spacing-component-xs, 0.25rem); }
+@utility px-component-sm { padding-inline: var(--spacing-component-sm, 0.5rem); }
+@utility px-component-md { padding-inline: var(--spacing-component-md, 1rem); }
+@utility px-component-lg { padding-inline: var(--spacing-component-lg, 1.5rem); }
+@utility px-component-xl { padding-inline: var(--spacing-component-xl, 2rem); }
+@utility py-component-xs { padding-block: var(--spacing-component-xs, 0.25rem); }
+@utility py-component-sm { padding-block: var(--spacing-component-sm, 0.5rem); }
+@utility py-component-md { padding-block: var(--spacing-component-md, 1rem); }
+@utility py-component-lg { padding-block: var(--spacing-component-lg, 1.5rem); }
+@utility py-component-xl { padding-block: var(--spacing-component-xl, 2rem); }
+
+/* ── Section spacing (between page sections) ── */
+@utility py-section-xs { padding-block: var(--spacing-section-xs, 2rem); }
+@utility py-section-sm { padding-block: var(--spacing-section-sm, 3rem); }
+@utility py-section-md { padding-block: var(--spacing-section-md, 4rem); }
+@utility py-section-lg { padding-block: var(--spacing-section-lg, 6rem); }
+@utility py-section-xl { padding-block: var(--spacing-section-xl, 8rem); }
+@utility mt-section-xs { margin-top: var(--spacing-section-xs, 2rem); }
+@utility mt-section-sm { margin-top: var(--spacing-section-sm, 3rem); }
+@utility mt-section-md { margin-top: var(--spacing-section-md, 4rem); }
+@utility mt-section-lg { margin-top: var(--spacing-section-lg, 6rem); }
+@utility mt-section-xl { margin-top: var(--spacing-section-xl, 8rem); }
+@utility mb-section-xs { margin-bottom: var(--spacing-section-xs, 2rem); }
+@utility mb-section-sm { margin-bottom: var(--spacing-section-sm, 3rem); }
+@utility mb-section-md { margin-bottom: var(--spacing-section-md, 4rem); }
+@utility mb-section-lg { margin-bottom: var(--spacing-section-lg, 6rem); }
+@utility mb-section-xl { margin-bottom: var(--spacing-section-xl, 8rem); }
+
+/* ── Container spacing (responsive padding) ── */
+@utility px-container-mobile { padding-inline: var(--spacing-container-mobile, 1rem); }
+@utility px-container-tablet { padding-inline: var(--spacing-container-tablet, 1.5rem); }
+@utility px-container-desktop { padding-inline: var(--spacing-container-desktop, 2rem); }
+
+/* ── Gap spacing (flex/grid gaps) ── */
+@utility gap-ds-xs { gap: var(--spacing-gap-xs, 0.5rem); }
+@utility gap-ds-sm { gap: var(--spacing-gap-sm, 0.75rem); }
+@utility gap-ds-md { gap: var(--spacing-gap-md, 1rem); }
+@utility gap-ds-lg { gap: var(--spacing-gap-lg, 1.5rem); }
+@utility gap-ds-xl { gap: var(--spacing-gap-xl, 2rem); }
+@utility gap-x-ds-xs { column-gap: var(--spacing-gap-xs, 0.5rem); }
+@utility gap-x-ds-sm { column-gap: var(--spacing-gap-sm, 0.75rem); }
+@utility gap-x-ds-md { column-gap: var(--spacing-gap-md, 1rem); }
+@utility gap-x-ds-lg { column-gap: var(--spacing-gap-lg, 1.5rem); }
+@utility gap-x-ds-xl { column-gap: var(--spacing-gap-xl, 2rem); }
+@utility gap-y-ds-xs { row-gap: var(--spacing-gap-xs, 0.5rem); }
+@utility gap-y-ds-sm { row-gap: var(--spacing-gap-sm, 0.75rem); }
+@utility gap-y-ds-md { row-gap: var(--spacing-gap-md, 1rem); }
+@utility gap-y-ds-lg { row-gap: var(--spacing-gap-lg, 1.5rem); }
+@utility gap-y-ds-xl { row-gap: var(--spacing-gap-xl, 2rem); }
+
+/* ── Stack spacing (vertical rhythm) ── */
+@utility stack-xs { & > :not(:first-child) { margin-top: var(--spacing-stack-xs, 0.5rem); } }
+@utility stack-sm { & > :not(:first-child) { margin-top: var(--spacing-stack-sm, 1rem); } }
+@utility stack-md { & > :not(:first-child) { margin-top: var(--spacing-stack-md, 1.5rem); } }
+@utility stack-lg { & > :not(:first-child) { margin-top: var(--spacing-stack-lg, 2rem); } }
+@utility stack-xl { & > :not(:first-child) { margin-top: var(--spacing-stack-xl, 3rem); } }

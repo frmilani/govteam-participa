@@ -1,0 +1,82 @@
+# ===========================================
+# AI Development Template - .gitignore
+# ===========================================
+
+# ----- Node.js -----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npmrc
+
+# ----- Next.js -----
+.next/
+out/
+build/
+.vercel
+
+# ----- Hub -----
+Hub/
+
+# ----- Environment -----
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ----- IDE -----
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ----- OS -----
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ----- Logs -----
+logs/
+*.log
+
+# ----- Testing -----
+coverage/
+.nyc_output/
+
+# ----- Build -----
+dist/
+*.tsbuildinfo
+
+# ----- Prisma -----
+prisma/*.db
+prisma/*.db-journal
+
+# ----- Docker -----
+# Keep docker-compose.yml but ignore generated files
+docker-compose.override.yml
+
+# ----- Project Specific -----
+# AI agent screenshots (can be large)
+screenshots/
+*.webp
+
+# Progress tracking (regenerated)
+claude-progress.txt
+
+# ----- Template Example Files -----
+# These are example implementations, not part of the template
+# Uncomment to exclude from template distribution:
+# frontend/
+# multi-agent-flow-architecture/
+# templates-pipeline/
+
+# ----- Keep These -----
+# Force include important files
+!.context/
+!.agent/
+!KICKOFF.md
+!AGENTS.md
+!.gitkeep
