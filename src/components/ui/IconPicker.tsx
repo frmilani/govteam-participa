@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button'; // Capitalized for Prêmio Destaque
+import { Button } from '@/components/ui/Button'; // Capitalized for Participa
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { Input } from '@/components/ui/Input'; // Capitalized for Prêmio Destaque
+import { Input } from '@/components/ui/Input'; // Capitalized for Participa
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 // Importa do novo arquivo de ícones criado

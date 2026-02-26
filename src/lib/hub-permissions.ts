@@ -9,7 +9,7 @@ import { HubPermissions } from '@frmilani/hub-permissions'
 export * from '@frmilani/hub-permissions'
 
 const HUB_URL = process.env.HUB_INTERNAL_URL || process.env.HUB_URL || 'http://localhost:3000'
-const SPOKE_ID = process.env.HUB_CLIENT_ID || 'premio-destaque'
+const SPOKE_ID = process.env.HUB_CLIENT_ID || 'participa'
 const SPOKE_SECRET = process.env.HUB_CLIENT_SECRET || ''
 
 // Singleton instance
@@ -65,7 +65,8 @@ export async function fetchMyUnits(
     })
 
     if (!res.ok) {
-      console.error(`[HPAC] fetchMyUnits failed: ${res.status}`)
+      const errorData = await res.json().catch(() => ({}));
+      console.error(`[HPAC] fetchMyUnits failed: ${res.status}`, errorData);
       return { userId, organizationId, units: [], hasGlobalAccess: false, totalMembers: 0 }
     }
 

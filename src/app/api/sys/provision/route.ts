@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Provisioning API for Premio Destaque
+ * Provisioning API for Participa
  * Receives organization activation/update from Hub
  */
 export async function POST(req: NextRequest) {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Provision SpokeConfig
-        // In Premio Destaque, SpokeConfig tracks DS and plan-level info
+        // In Participa, SpokeConfig tracks DS and plan-level info
         const config = await prisma.spokeConfig.upsert({
             where: { organizationId },
             update: {
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        console.log(`[Provisioning] Premio Destaque provisioned for org ${organizationId}. IsActive: ${isActive}`);
+        console.log(`[Provisioning] Participa provisioned for org ${organizationId}. IsActive: ${isActive}`);
 
         return NextResponse.json({
             success: true,

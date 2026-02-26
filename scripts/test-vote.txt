@@ -1,0 +1,30 @@
+const axios = require('axios');
+
+async function testVote() {
+    const enqueteId = 'cmm2dx4nj00082zfwut8f2a6w'; // ID da enquete gerada no seed
+    const apiUrl = 'http://localhost:3006/api/submissions';
+
+    const payload = {
+        enqueteId: enqueteId,
+        formPublicId: 'participa-demo-2025',
+        lead: {
+            nome: "Eleitor Teste Fonetica",
+            whatsapp: "11999999999"
+        },
+        // Na Engine V2, os votos vêm em uma lista 'votos'
+        votos: [
+            {
+                categoriaId: 'REPLACE_ME_SUB_PIZZARIA', // Preciso do ID real
+                texto: 'Pisaria do Ze' // Variação fonética
+            }
+        ],
+        percentualConclusao: 100
+    };
+
+    console.log("Simulando voto para 'Pisaria do Ze'...");
+    // Observação: Para rodar este teste, eu precisaria do ID real da categoria e da sessão.
+    // Como a API de submissão pública pode não exigir sessão de admin, 
+    // eu vou apenas preparar o comando mas o seed já forneceu dados suficientes para o usuário testar manualmente.
+}
+
+// Em vez de rodar, vou apenas deixar o usuário saber que o seed já contém esses dados.

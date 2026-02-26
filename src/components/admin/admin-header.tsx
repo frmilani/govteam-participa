@@ -59,7 +59,7 @@ export function AdminHeader() {
       <div className="flex items-center gap-4">
         <div className="hidden md:flex items-center bg-muted/30 rounded-md px-2.5 py-1 border border-border/50">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-2"></span>
-          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{organizationName || "Prêmio Destaque"}</span>
+          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{organizationName || "Participa"}</span>
         </div>
 
         <UnitSelector />

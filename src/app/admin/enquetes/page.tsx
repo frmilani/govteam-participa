@@ -23,7 +23,9 @@ import {
   Users,
   HelpCircle,
   Lock,
-  Gift
+  Gift,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import { ResourceLoader } from '@/components/ui/ResourceLoader';
 import { Button } from '@/components/ui/Button';
@@ -389,13 +391,23 @@ export default function EnquetesPage() {
                     <BarChart3 size={14} className="text-primary shrink-0" />
                     <span className="truncate">Insights</span>
                   </Link>
-                  <Link
-                    href={`/admin/enquetes/${enquete.id}/resultados`}
-                    className="rounded-md bg-background border border-border h-9 font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 px-2 hover:bg-muted transition-all text-muted-foreground hover:text-foreground shadow-sm w-full"
-                  >
-                    <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
-                    <span className="truncate">Resultados</span>
-                  </Link>
+                  {enquete.resultadosStatus === 'EM_CONFERENCIA' ? (
+                    <Link
+                      href={`/admin/enquetes/${enquete.id}/consolidacao`}
+                      className="rounded-md bg-amber-500/10 border border-amber-500/20 h-9 font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 px-2 hover:bg-amber-500/20 transition-all text-amber-700 shadow-sm w-full"
+                    >
+                      <RefreshCw size={14} className="shrink-0 animate-spin-slow" />
+                      <span className="truncate">Consolidar Sala</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/admin/enquetes/${enquete.id}/resultados`}
+                      className="rounded-md bg-background border border-border h-9 font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 px-2 hover:bg-muted transition-all text-muted-foreground hover:text-foreground shadow-sm w-full"
+                    >
+                      <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                      <span className="truncate">Resultados</span>
+                    </Link>
+                  )}
                   {enquete.status === 'RASCUNHO' ? (
                     <Button
                       onClick={() => handleStatusChange(enquete.id, 'PUBLICADA' as EnqueteStatus)}

@@ -15,7 +15,7 @@ export default function ThanksPage() {
 
                 <h1 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Voto Registrado!</h1>
                 <p className="text-slate-500 font-medium mb-8">
-                    Obrigado por participar do **Prêmio Destaque 2025**. Sua opinião é fundamental para valorizar o comércio local.
+                    Obrigado por sua participação. Sua opinião é fundamental para o fortalecimento da nossa democracia e serviços.
                 </p>
 
                 <div className="space-y-4">

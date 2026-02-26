@@ -538,7 +538,7 @@ export default function VotePage() {
                   className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mx-auto text-[#0a0908]"
                   style={{ backgroundColor: isPremium ? '#c9a962' : primaryColor }}
                 >
-                  {enquete.tituloBadge || 'Melhores do Ano 2025'}
+                  {enquete.tituloBadge || 'Participa 2025'}
                 </div>
 
                 <h1 className={`text-4xl xl:text-5xl font-black ${isPremium ? 'text-white font-serif' : 'text-white'} leading-[1.1]`}>

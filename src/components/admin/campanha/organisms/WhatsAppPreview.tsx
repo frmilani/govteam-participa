@@ -57,7 +57,7 @@ export function WhatsAppPreview({ strategy, initialMessage, messages, activeTemp
                         )}
                     </div>
                     <div className="flex-1">
-                        <p className="text-white text-[10px] font-bold leading-none">Prêmio Destaque</p>
+                        <p className="text-white text-[10px] font-bold leading-none">Participa</p>
                         <p className="text-[#9DE1FE] text-[8px] leading-none mt-1 uppercase font-black tracking-tighter">Online</p>
                     </div>
                     <MoreVertical size={14} className="text-white opacity-60" />

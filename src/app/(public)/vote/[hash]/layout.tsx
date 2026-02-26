@@ -14,7 +14,7 @@ export async function generateMetadata(
 
         if (!link) {
             return {
-                title: 'Votação Online | Prêmio Destaque',
+                title: 'Votação Online | Participa',
                 description: 'Participe da nossa pesquisa e deixe sua opinião.',
             };
         }
@@ -27,7 +27,7 @@ export async function generateMetadata(
         const image = configVisual.bannerUrl || configVisual.logoUrl || '';
 
         return {
-            title: `${title} | Prêmio Destaque`,
+            title: `${title} | Participa`,
             description,
             openGraph: {
                 title,

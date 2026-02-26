@@ -10,8 +10,8 @@ import { QueryProvider } from "@/components/providers/query-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Prêmio Destaque - Sistema de Enquetes e Premiações",
-  description: "Plataforma para gestão de enquetes e premiações online",
+  title: "Participa - Gestão de Enquetes e Votações",
+  description: "Plataforma para gestão de enquetes, votações e reconhecimento.",
 }
 
 export default async function RootLayout({

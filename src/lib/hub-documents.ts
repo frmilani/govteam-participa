@@ -10,7 +10,7 @@ const HUB_URL = process.env.HUB_INTERNAL_URL || process.env.HUB_URL;
 function spokeHeaders(organizationId?: string): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'x-spoke-id': process.env.HUB_CLIENT_ID || 'premio-destaque',
+    'x-spoke-id': process.env.HUB_CLIENT_ID || 'participa',
     'x-spoke-secret': process.env.HUB_CLIENT_SECRET || '',
   };
   if (organizationId) headers['x-organization-id'] = organizationId;

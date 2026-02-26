@@ -35,7 +35,7 @@ export class OtpService {
         });
 
         // Send via WhatsApp
-        const message = `Seu código de verificação para o Prêmio Destaque é: ${code}. Válido por 5 minutos.`;
+        const message = `Seu código de verificação para o Participa é: ${code}. Válido por 5 minutos.`;
         await WhatsappService.sendMessage({
             to: formattedPhone,
             text: message,

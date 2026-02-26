@@ -99,8 +99,12 @@ export async function GET(
             };
         });
 
-        // Ordernar do maior formigueiro para o menor
-        clusters.sort((a, b) => b.totalVotos - a.totalVotos);
+        // Ordernar por Categoria (alfanumérico) e depois por Total de Votos (decrescente)
+        clusters.sort((a, b) => {
+            if (a.categoriaNome < b.categoriaNome) return -1;
+            if (a.categoriaNome > b.categoriaNome) return 1;
+            return b.totalVotos - a.totalVotos;
+        });
 
         return NextResponse.json(clusters);
 

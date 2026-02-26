@@ -162,7 +162,7 @@ export class HubApiService {
 
     try {
       const response = await this.client.get('/api/public/v1/spokes/config', {
-        params: { spokeType: 'premio-destaque' },
+        params: { spokeType: 'participa' },
         headers: {
           'x-spoke-id': HUB_CLIENT_ID,
           'x-spoke-secret': HUB_CLIENT_SECRET,

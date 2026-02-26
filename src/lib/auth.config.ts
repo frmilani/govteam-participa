@@ -22,10 +22,10 @@ export const authOptions = {
   trustHost: true,
   providers: [
     {
-      id: "formbuilder-hub",
+      id: "hub",
       name: "FormBuilder Hub",
       type: "oauth",
-      issuer: "https://formbuilder.com",
+      issuer: HUB_URL,
       clientId: HUB_CLIENT_ID,
       clientSecret: HUB_CLIENT_SECRET,
       authorization: {
@@ -140,7 +140,7 @@ export const authOptions = {
   },
   cookies: {
     sessionToken: {
-      name: `next-auth.session-token.spoke-premio`,
+      name: `next-auth.session-token.spoke-participa`,
       options: {
         httpOnly: true,
         sameSite: "lax",
@@ -149,7 +149,7 @@ export const authOptions = {
       },
     },
     callbackUrl: {
-      name: `next-auth.callback-url.spoke-premio`,
+      name: `next-auth.callback-url.spoke-participa`,
       options: {
         sameSite: "lax",
         path: "/",
@@ -157,7 +157,7 @@ export const authOptions = {
       },
     },
     csrfToken: {
-      name: `next-auth.csrf-token.spoke-premio`,
+      name: `next-auth.csrf-token.spoke-participa`,
       options: {
         httpOnly: true,
         sameSite: "lax",
@@ -166,7 +166,7 @@ export const authOptions = {
       },
     },
     pkceCodeVerifier: {
-      name: `next-auth.pkce.code_verifier.spoke-premio`,
+      name: `next-auth.pkce.code_verifier.spoke-participa`,
       options: {
         httpOnly: true,
         sameSite: "lax",
@@ -175,7 +175,7 @@ export const authOptions = {
       },
     },
     state: {
-      name: `next-auth.state.spoke-premio`,
+      name: `next-auth.state.spoke-participa`,
       options: {
         httpOnly: true,
         sameSite: "lax",

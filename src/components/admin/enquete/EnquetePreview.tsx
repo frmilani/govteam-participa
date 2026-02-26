@@ -114,7 +114,7 @@ export const EnquetePreview: React.FC<EnquetePreviewProps> = ({
                                                     template.mood === "elegant" && "font-serif"
                                                 )}
                                             >
-                                                {titulo || "Prêmio Destaque"}
+                                                {titulo || "Participa"}
                                             </h1>
                                             <p className="text-muted-foreground text-[10px] font-medium leading-relaxed px-4 line-clamp-2">
                                                 {descricao ||

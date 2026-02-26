@@ -6,7 +6,7 @@
  */
 
 const HUB_URL = process.env.HUB_INTERNAL_URL || process.env.HUB_URL || 'http://localhost:3000'
-const SPOKE_ID = process.env.HUB_CLIENT_ID || 'premio-destaque'
+const SPOKE_ID = process.env.HUB_CLIENT_ID || 'participa'
 const SPOKE_SECRET = process.env.HUB_CLIENT_SECRET || ''
 
 export const SPOKE_RESOURCES = [
@@ -69,14 +69,14 @@ export async function registerResources(): Promise<void> {
         'x-spoke-secret': SPOKE_SECRET,
       },
       body: JSON.stringify({
-        spokeId: 'premio-destaque',
+        spokeId: 'participa',
         resources: SPOKE_RESOURCES,
       }),
     })
 
     if (res.ok) {
       const data = await res.json()
-      console.log(`[Resource Registry] Registered ${data.registered} resources for premio-destaque`)
+      console.log(`[Resource Registry] Registered ${data.registered} resources for participa`)
     } else {
       console.error(`[Resource Registry] Failed: ${res.status} ${res.statusText}`)
     }

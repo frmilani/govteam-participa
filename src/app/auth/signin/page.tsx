@@ -19,7 +19,7 @@ export default function SignInPage() {
       options.prompt = "login"
     }
 
-    await signIn("formbuilder-hub", options)
+    await signIn("hub", options)
   }
 
   // Auto-login on load

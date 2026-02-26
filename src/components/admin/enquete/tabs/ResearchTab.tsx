@@ -3,15 +3,17 @@ import { useFormContext, Controller } from "react-hook-form";
 import { BrainCircuit, Filter, Layers, Shuffle, CheckCircle2, ShieldQuestion, Info, AlertTriangle, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
-import { useParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Slider } from "@/components/ui/slider";
 import { useSegmentos } from "@/hooks/use-segmentos";
 import { EnqueteFormData } from "../EnqueteFormSchema";
 import { QualidadeInheritanceView } from "../QualidadeInheritanceView";
 import { TipoPesquisaInfoDialog } from "@/components/admin/TipoPesquisaInfoDialog";
+import { Button } from "@/components/ui/Button";
 
 export const ResearchTab: React.FC = () => {
+    const router = useRouter();
     const params = useParams();
     const enqueteId = params?.id as string;
     const { data: segmentos = [] } = useSegmentos();
@@ -121,11 +123,26 @@ export const ResearchTab: React.FC = () => {
                 {modoColeta === "top-of-mind" && (
                     <div className="mt-4 p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                         <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-                        <p className="text-xs">
-                            <strong>Atenção:</strong> Neste modo, o motor não apresentará opções. Cadastros prévios de Participantes/Entidades não serão exibidos aos votantes.
-                        </p>
+                        <div className="flex-1">
+                            <p className="text-xs">
+                                <strong>Atenção:</strong> Neste modo, o motor não apresentará opções. Cadastros prévios de Participantes/Entidades não serão exibidos aos votantes.
+                            </p>
+                            {enqueteId && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => router.push(`/admin/enquetes/${enqueteId}/consolidacao`)}
+                                    className="mt-3 border-yellow-500/50 hover:bg-yellow-500/20 text-yellow-800 dark:text-yellow-200 gap-2 h-8 text-[10px] font-bold uppercase"
+                                >
+                                    <BrainCircuit className="w-3.5 h-3.5" />
+                                    Abrir Sala de Consolidação
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 )}
+
 
                 {modoColeta === "recall-duplo" && (
                     <div className="mt-4 p-3 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
