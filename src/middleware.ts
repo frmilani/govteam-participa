@@ -4,16 +4,42 @@ import { NextResponse } from "next/server"
 /**
  * Tenant Resolution Logic (Edge Runtime Compatible)
  */
-function resolveTenant(hostname: string): string | null {
+async function resolveTenant(hostname: string): Promise<string | null> {
   if (!hostname) return null;
-  const domain = hostname.split(':')[0];
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'govteam.com.br';
+  const domain = hostname.split(':')[0].toLowerCase();
 
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'govteam.com.br';
+  const dedicatedDomains = [process.env.NEXT_PUBLIC_CARTA_DOMAIN || 'cartadeservicos.com.br'];
+
+  // 1. Dedicated domains
+  for (const dedicated of dedicatedDomains) {
+    if (domain.endsWith(`.${dedicated}`)) {
+      return domain.replace(`.${dedicated}`, '');
+    }
+  }
+
+  // 2. Base domain
   if (domain.endsWith(`.${baseDomain}`)) {
     const slug = domain.replace(`.${baseDomain}`, '');
     const reserved = ['app', 'www', 'admin', 'sys', 'api', 'dev', 'traefik'];
-    return reserved.includes(slug) ? null : slug;
+    if (reserved.includes(slug)) return null;
+    return slug;
   }
+
+  // 3. Vanity Domains (via Hub API proxy)
+  try {
+    const hubUrl = process.env.NEXT_PUBLIC_HUB_URL || 'http://localhost:3000';
+    const res = await fetch(`${hubUrl}/api/public/tenant/resolve?domain=${encodeURIComponent(domain)}`, {
+      next: { revalidate: 3600 }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.tenantSlug) return data.tenantSlug;
+    }
+  } catch (error) {
+    console.error(`[resolveTenant] Falha resolver vanity ${domain} via Hub:`, error);
+  }
+
   return null;
 }
 
@@ -36,12 +62,12 @@ const PUBLIC_ROUTES = [
   /^\/$/,                          // Home
 ]
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { pathname } = req.nextUrl
   const hostname = req.headers.get("host") || ""
 
   // 1. Extrair informações de Tenant
-  const tenantSlug = req.headers.get("x-tenant-slug") || resolveTenant(hostname)
+  const tenantSlug = req.headers.get("x-tenant-slug") || await resolveTenant(hostname)
 
   // 2. Injetar contexto básico nos headers
   const requestHeaders = new Headers(req.headers)

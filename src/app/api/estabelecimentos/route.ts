@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOrganizationId } from "@/lib/auth-helpers";
 import { getEstabelecimentos, createEstabelecimento } from "@/lib/estabelecimentos/estabelecimento-service";
 import { z } from "zod";
-import { checkPermission, applyFieldMaskToArray } from "@/lib/hub-permissions";
+import { checkPermission, applyFieldMaskToArray, hpacDeniedResponse } from "@/lib/hub-permissions";
 import { auth } from "@/auth";
 import { validateHubRequest, getOrganizationIdFromHeader } from "@/lib/hub-auth";
 // E1.4: Validators centralizados para TipoEntidade
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!permResult?.allowed) {
-      return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
+      return hpacDeniedResponse('premio:estabelecimento', 'read');
     }
 
     const { searchParams } = new URL(req.url);
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
       'create'
     );
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão para criar estabelecimentos" }, { status: 403 });
+      return hpacDeniedResponse('premio:estabelecimento', 'create');
     }
 
     const body = await req.json();

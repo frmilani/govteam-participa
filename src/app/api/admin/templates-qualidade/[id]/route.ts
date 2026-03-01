@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { checkPermission } from "@/lib/hub-permissions";
+import { checkPermission, hpacDeniedResponse } from "@/lib/hub-permissions";
 import { templateQualidadeSchema } from "@/lib/templates-qualidade/template-validators";
 import { getTemplateById, updateTemplate, deleteTemplate } from "@/lib/templates-qualidade/template-qualidade-service";
 
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         }
 
         const perm = await checkPermission(session.user.id, session.user.organizationId, "premio:template", "read");
-        if (!perm.allowed) return NextResponse.json({ error: "Permissão insuficiente" }, { status: 403 });
+        if (!perm.allowed) return hpacDeniedResponse("premio:template", "read");
 
         const template = await getTemplateById(id, session.user.organizationId);
         if (!template) return NextResponse.json({ error: "Template não encontrado" }, { status: 404 });
@@ -31,7 +31,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (!session?.user?.organizationId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
         const perm = await checkPermission(session.user.id, session.user.organizationId, "premio:template", "update");
-        if (!perm.allowed) return NextResponse.json({ error: "Permissão insuficiente" }, { status: 403 });
+        if (!perm.allowed) return hpacDeniedResponse("premio:template", "update");
 
         const body = await req.json();
         const parsed = templateQualidadeSchema.parse(body);
@@ -50,7 +50,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         if (!session?.user?.organizationId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
         const perm = await checkPermission(session.user.id, session.user.organizationId, "premio:template", "delete");
-        if (!perm.allowed) return NextResponse.json({ error: "Permissão insuficiente" }, { status: 403 });
+        if (!perm.allowed) return hpacDeniedResponse("premio:template", "delete");
 
         await deleteTemplate(id, session.user.organizationId);
         return new NextResponse(null, { status: 204 });

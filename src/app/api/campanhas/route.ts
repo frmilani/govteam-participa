@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { CampanhaService } from "@/lib/campanhas/campanha-service";
 import { CampanhaStatus } from "@prisma/client";
 import { z } from "zod";
-import { checkPermission, applyFieldMaskToArray } from "@/lib/hub-permissions";
+import { checkPermission, applyFieldMaskToArray, hpacDeniedResponse } from "@/lib/hub-permissions";
 
 const messageSchema = z.object({
   type: z.enum(['text', 'image', 'audio', 'video', 'menu', 'interactive']),
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
     );
 
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão para visualizar campanhas" }, { status: 403 });
+      return hpacDeniedResponse('premio:campanha', 'read');
     }
 
     const { searchParams } = new URL(req.url);
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão para criar campanhas" }, { status: 403 });
+      return hpacDeniedResponse('premio:campanha', 'create');
     }
 
     const body = await req.json();

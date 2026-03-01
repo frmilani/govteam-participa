@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { LeadService } from "@/lib/leads/lead-service";
 import { z } from "zod";
 import { Sexo, VerificacaoStatus } from "@prisma/client";
-import { checkPermission, applyFieldMaskToArray, narrowUnitScope, getActiveUnitFromRequest } from "@/lib/hub-permissions";
+import { checkPermission, applyFieldMaskToArray, narrowUnitScope, getActiveUnitFromRequest, hpacDeniedResponse } from "@/lib/hub-permissions";
 
 const leadSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     );
 
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão para visualizar leads" }, { status: 403 });
+      return hpacDeniedResponse('premio:lead', 'read');
     }
 
     const { searchParams } = new URL(req.url);
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão para criar leads" }, { status: 403 });
+      return hpacDeniedResponse('premio:lead', 'create');
     }
 
     const body = await req.json();

@@ -38,11 +38,27 @@ export async function checkPermission(
   }, organizationId)
 }
 
+import { NextResponse } from 'next/server'
+
 /**
  * Compatibility wrapper for auditLog
  */
 export async function auditLog(entry: any) {
   return perms.audit(entry)
+}
+
+/**
+ * Helper to return a standardized HPAC denied response
+ */
+export function hpacDeniedResponse(resource: string, action: string, reason?: string) {
+  return NextResponse.json(
+    {
+      code: 'HPAC_DENIED',
+      error: 'Você não tem permissão para realizar esta ação.',
+      details: { resource, action, reason: reason || 'Nenhuma política de acesso foi configurada para permitir esta ação.' }
+    },
+    { status: 403 }
+  );
 }
 
 /**

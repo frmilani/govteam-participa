@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { EnqueteService } from "@/lib/enquetes/enquete-service";
 import { EnqueteStatus, ModoAcesso } from "@prisma/client";
 import { z } from "zod";
-import { checkPermission, applyFieldMask, buildUnitScopeWhere } from "@/lib/hub-permissions";
+import { checkPermission, applyFieldMask, buildUnitScopeWhere, hpacDeniedResponse } from "@/lib/hub-permissions";
 import { prisma } from "@/lib/prisma";
 
 const updateEnqueteSchema = z.object({
@@ -59,7 +59,7 @@ export async function GET(
     );
 
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
+      return hpacDeniedResponse('premio:enquete', 'read');
     }
 
     const hasAccess = await prisma.enquete.findFirst({
@@ -104,7 +104,7 @@ export async function PUT(
     );
 
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão para editar enquete" }, { status: 403 });
+      return hpacDeniedResponse('premio:enquete', 'update');
     }
 
     const hasAccess = await prisma.enquete.findFirst({
@@ -156,7 +156,7 @@ export async function DELETE(
     );
 
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão para excluir enquete" }, { status: 403 });
+      return hpacDeniedResponse('premio:enquete', 'delete');
     }
 
     const hasAccess = await prisma.enquete.findFirst({

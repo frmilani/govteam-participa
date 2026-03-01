@@ -44,8 +44,9 @@ export function useEstabelecimentos(filters: {
     queryKey: ["estabelecimentos", filters],
     queryFn: async () => {
       const response = await apiFetch(`/api/estabelecimentos?${queryParams.toString()}`);
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) throw new Error("Erro ao carregar estabelecimentos");
-      return response.json();
+      return response.json() as Promise<Estabelecimento[]>;
     },
   });
 }
@@ -55,8 +56,9 @@ export function useEstabelecimento(id: string | null) {
     queryKey: ["estabelecimento", id],
     queryFn: async () => {
       const response = await apiFetch(`/api/estabelecimentos/${id}`);
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) throw new Error("Erro ao carregar estabelecimento");
-      return response.json();
+      return response.json() as Promise<Estabelecimento>;
     },
     enabled: !!id,
   });
@@ -71,11 +73,12 @@ export function useCreateEstabelecimento() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) {
-        const error = await response.json();
+        const error: any = await response.json();
         throw new Error(error.error || "Erro ao criar estabelecimento");
       }
-      return response.json();
+      return response.json() as Promise<Estabelecimento>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["estabelecimentos"] });
@@ -92,11 +95,12 @@ export function useUpdateEstabelecimento() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) {
-        const error = await response.json();
+        const error: any = await response.json();
         throw new Error(error.error || "Erro ao atualizar estabelecimento");
       }
-      return response.json();
+      return response.json() as Promise<Estabelecimento>;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["estabelecimentos"] });
@@ -112,11 +116,12 @@ export function useToggleEstabelecimento() {
       const response = await apiFetch(`/api/estabelecimentos/${id}/toggle`, {
         method: "PATCH",
       });
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) {
-        const error = await response.json();
+        const error: any = await response.json();
         throw new Error(error.error || "Erro ao alterar status");
       }
-      return response.json();
+      return response.json() as Promise<Estabelecimento>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["estabelecimentos"] });
@@ -132,11 +137,12 @@ export function usePresignedUrl() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileName, fileType }),
       });
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) {
-        const error = await response.json();
+        const error: any = await response.json();
         throw new Error(error.error || "Erro ao gerar URL de upload");
       }
-      return response.json();
+      return response.json() as Promise<{ uploadUrl: string; key: string; publicUrl: string }>;
     },
   });
 }
@@ -150,11 +156,12 @@ export function useImportEstabelecimentos() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estabelecimentos }),
       });
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) {
-        const error = await response.json();
+        const error: any = await response.json();
         throw new Error(error.error || "Erro ao importar estabelecimentos");
       }
-      return response.json();
+      return response.json() as Promise<{ count: number }>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["estabelecimentos"] });

@@ -16,8 +16,9 @@ export function useEnquetes(filters: EnqueteFilters = {}) {
     queryKey: ["enquetes", filters],
     queryFn: async () => {
       const res = await apiFetch(`/api/enquetes?${queryParams.toString()}`);
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) throw new Error("Erro ao carregar enquetes");
-      return res.json();
+      return res.json() as Promise<Enquete[]>;
     },
   });
 }
@@ -28,8 +29,9 @@ export function useEnquete(id: string | null) {
     queryFn: async () => {
       if (!id) throw new Error("ID da enquete não fornecido");
       const res = await apiFetch(`/api/enquetes/${id}`);
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) throw new Error("Erro ao carregar enquete");
-      return res.json();
+      return res.json() as Promise<Enquete>;
     },
     enabled: !!id,
   });
@@ -46,15 +48,16 @@ export function useCreateEnquete() {
         body: JSON.stringify(data),
       });
 
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const contentType = res.headers.get("content-type");
+        const contentType = res.raw.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
-          const error = await res.json();
+          const error: any = await res.json();
           throw new Error(error.error || "Erro ao criar enquete");
         }
         throw new Error(`Erro no servidor (${res.status}): Não foi possível criar a enquete.`);
       }
-      return res.json();
+      return res.json() as Promise<Enquete>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enquetes"] });
@@ -73,15 +76,16 @@ export function useUpdateEnquete() {
         body: JSON.stringify(data),
       });
 
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const contentType = res.headers.get("content-type");
+        const contentType = res.raw.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
-          const error = await res.json();
+          const error: any = await res.json();
           throw new Error(error.error || "Erro ao atualizar enquete");
         }
         throw new Error(`Erro no servidor (${res.status}): Não foi possível atualizar a enquete.`);
       }
-      return res.json();
+      return res.json() as Promise<Enquete>;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["enquetes"] });
@@ -98,11 +102,12 @@ export function useDeleteEnquete() {
       const res = await apiFetch(`/api/enquetes/${id}`, {
         method: "DELETE",
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao excluir enquete");
       }
-      return res.json();
+      return res.json() as Promise<Enquete>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enquetes"] });
@@ -118,11 +123,12 @@ export function useDuplicateEnquete() {
       const res = await apiFetch(`/api/enquetes/${id}/duplicate`, {
         method: "POST",
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao duplicar enquete");
       }
-      return res.json();
+      return res.json() as Promise<Enquete>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enquetes"] });

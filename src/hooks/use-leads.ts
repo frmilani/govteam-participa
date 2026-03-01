@@ -20,8 +20,9 @@ export function useLeads(filters: LeadFilters = {}) {
     queryKey: ["leads", filters],
     queryFn: async () => {
       const res = await apiFetch(`/api/leads?${queryParams.toString()}`);
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) throw new Error("Erro ao carregar leads");
-      return res.json();
+      return res.json() as Promise<LeadWithTags[]>;
     },
   });
 }
@@ -36,11 +37,12 @@ export function useCreateLead() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao criar lead");
       }
-      return res.json();
+      return res.json() as Promise<LeadWithTags>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
@@ -58,11 +60,12 @@ export function useUpdateLead() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao atualizar lead");
       }
-      return res.json();
+      return res.json() as Promise<LeadWithTags>;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
@@ -79,11 +82,12 @@ export function useDeleteLead() {
       const res = await apiFetch(`/api/leads/${id}`, {
         method: "DELETE",
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao excluir lead");
       }
-      return res.json();
+      return res.json() as Promise<LeadWithTags>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
@@ -99,8 +103,9 @@ export function useCheckDuplicate() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) throw new Error("Erro ao verificar duplicatas");
-      return res.json();
+      return res.json() as Promise<{ isDuplicate: boolean; fields: string[] }>;
     },
   });
 }
@@ -113,11 +118,12 @@ export function useOptOutLead() {
       const res = await apiFetch(`/api/leads/${id}/opt-out`, {
         method: "PATCH",
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao marcar opt-out");
       }
-      return res.json();
+      return res.json() as Promise<LeadWithTags>;
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
@@ -136,11 +142,12 @@ export function useImportLeads() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ leads }),
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao importar leads");
       }
-      return res.json();
+      return res.json() as Promise<{ count: number }>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });

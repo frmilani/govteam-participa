@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { checkPermission } from "@/lib/hub-permissions";
+import { checkPermission, hpacDeniedResponse } from "@/lib/hub-permissions";
 import { templateQualidadeSchema } from "@/lib/templates-qualidade/template-validators";
 import { getTemplates, createTemplate } from "@/lib/templates-qualidade/template-qualidade-service";
 
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
         );
 
         if (!perm.allowed) {
-            return NextResponse.json({ error: "Permissão insuficiente" }, { status: 403 });
+            return hpacDeniedResponse("premio:template", "read");
         }
 
         const templates = await getTemplates(session.user.organizationId);
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         );
 
         if (!perm.allowed) {
-            return NextResponse.json({ error: "Permissão insuficiente" }, { status: 403 });
+            return hpacDeniedResponse("premio:template", "create");
         }
 
         const body = await req.json();

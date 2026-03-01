@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/Toast';
+import { apiFetch } from '@/lib/api-client';
 
 interface WhatsappInstance {
     id: string;
@@ -47,7 +48,8 @@ export default function WhatsappPage() {
     const { data: instances = [], isLoading } = useQuery({
         queryKey: ['whatsapp-instances'],
         queryFn: async () => {
-            const res = await fetch('/api/whatsapp/instances');
+            const res = await apiFetch('/api/whatsapp/instances');
+            if (res.denied) throw new Error("HPAC_DENIED");
             if (!res.ok) throw new Error("Erro ao carregar instâncias");
             return res.json() as Promise<WhatsappInstance[]>;
         }
@@ -56,13 +58,14 @@ export default function WhatsappPage() {
     // --- MUTATIONS ---
     const addMutation = useMutation({
         mutationFn: async (data: { name: string, number: string }) => {
-            const res = await fetch('/api/whatsapp/instances', {
+            const res = await apiFetch('/api/whatsapp/instances', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
+            if (res.denied) throw new Error("HPAC_DENIED");
             if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
+                const errorData: any = await res.json().catch(() => ({}));
                 throw new Error(errorData.details || errorData.error || "Erro ao criar instância");
             }
             return res.json();
@@ -79,9 +82,10 @@ export default function WhatsappPage() {
 
     const deleteMutation = useMutation({
         mutationFn: async (id: string) => {
-            const res = await fetch(`/api/whatsapp/instances/${id}`, {
+            const res = await apiFetch(`/api/whatsapp/instances/${id}`, {
                 method: 'DELETE'
             });
+            if (res.denied) throw new Error("HPAC_DENIED");
             if (!res.ok) throw new Error("Erro ao excluir instância");
             return res.json();
         },
@@ -97,14 +101,15 @@ export default function WhatsappPage() {
 
     const connectMutation = useMutation({
         mutationFn: async (id: string) => {
-            const res = await fetch(`/api/whatsapp/instances/${id}/connect`, {
+            const res = await apiFetch(`/api/whatsapp/instances/${id}/connect`, {
                 method: 'POST'
             });
+            if (res.denied) throw new Error("HPAC_DENIED");
             if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
+                const errorData: any = await res.json().catch(() => ({}));
                 throw new Error(errorData.details || errorData.error || "Erro ao solicitar conexão");
             }
-            return res.json();
+            return res.json() as Promise<{ qrcode?: string }>;
         },
         onSuccess: (data) => {
             if (data.qrcode) setCurrentQrCode(data.qrcode);
@@ -115,9 +120,10 @@ export default function WhatsappPage() {
 
     const statusMutation = useMutation({
         mutationFn: async (id: string) => {
-            const res = await fetch(`/api/whatsapp/instances/${id}/status`);
+            const res = await apiFetch(`/api/whatsapp/instances/${id}/status`);
+            if (res.denied) throw new Error("HPAC_DENIED");
             if (!res.ok) throw new Error("Erro ao verificar status");
-            return res.json();
+            return res.json() as Promise<{ status: string, qrcode?: string }>;
         },
         onSuccess: (data, id) => {
             if (activeInstanceRef.current === id) {
@@ -135,9 +141,10 @@ export default function WhatsappPage() {
 
     const disconnectMutation = useMutation({
         mutationFn: async (id: string) => {
-            const res = await fetch(`/api/whatsapp/instances/${id}/disconnect`, {
+            const res = await apiFetch(`/api/whatsapp/instances/${id}/disconnect`, {
                 method: 'POST'
             });
+            if (res.denied) throw new Error("HPAC_DENIED");
             if (!res.ok) throw new Error("Erro ao desconectar instância");
             return res.json();
         },

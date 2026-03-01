@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { useEstabelecimentos } from "@/hooks/use-estabelecimentos";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
+import { apiFetch } from "@/lib/api-client";
 
 interface SugestaoTextual {
     texto: string;
@@ -38,19 +39,21 @@ export default function ConsolidacaoPage() {
     const { data: clusters, isLoading, error } = useQuery<Cluster[]>({
         queryKey: ["top-of-mind-grupos", enqueteId],
         queryFn: async () => {
-            const res = await fetch(`/api/admin/enquetes/${enqueteId}/top-of-mind/grupos`);
+            const res = await apiFetch(`/api/admin/enquetes/${enqueteId}/top-of-mind/grupos`);
+            if (res.denied) throw new Error("HPAC_DENIED");
             if (!res.ok) throw new Error("Erro ao buscar grupos");
-            return res.json();
+            return res.json() as Promise<Cluster[]>;
         }
     });
 
     const mutation = useMutation({
         mutationFn: async (payload: any) => {
-            const res = await fetch(`/api/admin/enquetes/${enqueteId}/top-of-mind/consolidate`, {
+            const res = await apiFetch(`/api/admin/enquetes/${enqueteId}/top-of-mind/consolidate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
+            if (res.denied) throw new Error("HPAC_DENIED");
             if (!res.ok) throw new Error("Falha ao consolidar");
             return res.json();
         },

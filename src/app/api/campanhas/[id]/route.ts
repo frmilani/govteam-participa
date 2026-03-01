@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { CampanhaService } from "@/lib/campanhas/campanha-service";
-import { checkPermission, buildUnitScopeWhere } from "@/lib/hub-permissions";
+import { checkPermission, buildUnitScopeWhere, hpacDeniedResponse } from "@/lib/hub-permissions";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -31,7 +31,7 @@ export async function GET(
         );
 
         if (!perm.allowed) {
-            return NextResponse.json({ error: "Sem permissão para visualizar campanhas" }, { status: 403 });
+            return hpacDeniedResponse('premio:campanha', 'read');
         }
 
         const hasAccess = await prisma.campanha.findFirst({
@@ -78,7 +78,7 @@ export async function PUT(
         );
 
         if (!perm.allowed) {
-            return NextResponse.json({ error: "Sem permissão para atualizar campanhas" }, { status: 403 });
+            return hpacDeniedResponse('premio:campanha', 'update');
         }
 
         const hasAccess = await prisma.campanha.findFirst({
@@ -155,7 +155,7 @@ export async function DELETE(
         );
 
         if (!perm.allowed) {
-            return NextResponse.json({ error: "Sem permissão para excluir campanhas" }, { status: 403 });
+            return hpacDeniedResponse('premio:campanha', 'delete');
         }
 
         const hasAccess = await prisma.campanha.findFirst({

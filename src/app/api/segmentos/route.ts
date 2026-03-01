@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOrganizationId } from "@/lib/auth-helpers";
 import { getSegmentos, createSegmento } from "@/lib/segmentos/segmento-service";
 import { z } from "zod";
-import { checkPermission, applyFieldMaskToArray } from "@/lib/hub-permissions";
+import { checkPermission, applyFieldMaskToArray, hpacDeniedResponse } from "@/lib/hub-permissions";
 import { auth } from "@/auth";
 
 const createSchema = z.object({
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       'read'
     );
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão" }, { status: 403 });
+      return hpacDeniedResponse('premio:segmento', 'read');
     }
 
     const { searchParams } = new URL(req.url);
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       'create'
     );
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão para criar segmentos" }, { status: 403 });
+      return hpacDeniedResponse('premio:segmento', 'create');
     }
 
     console.log("[API_SEGMENTOS_POST] organizationId:", organizationId);

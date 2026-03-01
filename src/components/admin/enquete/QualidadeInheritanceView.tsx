@@ -6,6 +6,7 @@ import { Loader2, CheckCircle2, AlertTriangle, Settings2, Sparkles } from "lucid
 import { useTemplates } from "@/hooks/use-templates";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api-client";
 
 interface SegmentoQualidade {
     id: string;
@@ -27,19 +28,21 @@ export const QualidadeInheritanceView: React.FC<{ enqueteId: string }> = ({ enqu
     const { data: segmentos = [], isLoading } = useQuery<SegmentoQualidade[]>({
         queryKey: ["arvore-qualidade", enqueteId],
         queryFn: async () => {
-            const res = await fetch(`/api/enquetes/${enqueteId}/arvore-qualidade`);
+            const res = await apiFetch(`/api/enquetes/${enqueteId}/arvore-qualidade`);
+            if (res.denied) throw new Error("HPAC_DENIED");
             if (!res.ok) throw new Error("Failed to load arvore de qualidade");
-            return res.json();
+            return res.json() as Promise<SegmentoQualidade[]>;
         }
     });
 
     const mutation = useMutation({
         mutationFn: async ({ id, templateQualidadeId }: { id: string; templateQualidadeId: string | null }) => {
-            const res = await fetch(`/api/segmentos/${id}`, {
+            const res = await apiFetch(`/api/segmentos/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ templateQualidadeId }),
             });
+            if (res.denied) throw new Error("HPAC_DENIED");
             if (!res.ok) throw new Error("Failed to update segmento");
             return res.json();
         },

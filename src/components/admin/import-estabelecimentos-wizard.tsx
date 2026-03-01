@@ -4,13 +4,13 @@ import React, { useState, useRef } from 'react';
 import Papa from 'papaparse';
 import { FullScreenForm } from '@/components/ui/FullScreenForm';
 import { Button } from '@/components/ui/Button';
-import { 
-  FileUp, 
-  Table, 
-  AlertCircle, 
-  CheckCircle2, 
-  X, 
-  ChevronRight, 
+import {
+  FileUp,
+  Table,
+  AlertCircle,
+  CheckCircle2,
+  X,
+  ChevronRight,
   ChevronLeft,
   Upload,
   Database
@@ -31,8 +31,8 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
   const [csvData, setCsvData] = useState<any[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
-  const [importResults, setResult] = useState<{ created: number; errors: string[] } | null>(null);
-  
+  const [importResults, setResult] = useState<{ count: number; created?: number; errors?: string[] } | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: segmentos = [] } = useSegmentos();
   const importMutation = useImportEstabelecimentos();
@@ -54,7 +54,7 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
           const firstRow = data[0];
           const headerKeys = Object.keys(firstRow);
           setHeaders(headerKeys);
-          
+
           // Auto-mapping
           const newMapping: Record<string, string> = {};
           headerKeys.forEach(header => {
@@ -83,7 +83,7 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
     try {
       const payload = csvData.map(row => {
         const item: any = {};
-        
+
         // Map fields
         item.nome = row[mapping.nome];
         item.descricao = row[mapping.descricao];
@@ -97,9 +97,9 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
         // Process segments (split by comma and match names or IDs)
         const segmentsRaw = String(row[mapping.segmentoIds] || "");
         const segmentNames = segmentsRaw.split(',').map(s => s.trim().toLowerCase());
-        
+
         item.segmentoIds = segmentNames.map(name => {
-          const found = segmentos.find(s => 
+          const found = segmentos.find(s =>
             s.nome.toLowerCase() === name || s.id === name
           );
           return found?.id;
@@ -138,8 +138,8 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
             <p className="text-sm text-muted-foreground font-medium mb-8 text-center max-w-xs">
               Selecione um arquivo .csv com os dados dos estabelecimentos.
             </p>
-            <input 
-              type="file" 
+            <input
+              type="file"
               ref={fileInputRef}
               onChange={handleFileUpload}
               accept=".csv"
@@ -157,7 +157,7 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
             <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3">
               <AlertCircle className="text-blue-500 shrink-0" size={20} />
               <p className="text-xs text-blue-700 font-medium leading-relaxed">
-                Relacione as colunas do seu arquivo com os campos do sistema. 
+                Relacione as colunas do seu arquivo com os campos do sistema.
                 Os campos <strong>Nome</strong> e <strong>Segmentos</strong> são obrigatórios.
               </p>
             </div>
@@ -168,9 +168,9 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
                   <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
                     {field === 'nome' ? 'Nome (Obrigatório)' : field === 'segmentoIds' ? 'Segmentos (Obrigatório)' : field}
                   </label>
-                  <select 
+                  <select
                     value={mapping[field] || ""}
-                    onChange={(e) => setMapping({...mapping, [field]: e.target.value})}
+                    onChange={(e) => setMapping({ ...mapping, [field]: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm font-bold text-foreground focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
                   >
                     <option value="">-- Não importar --</option>
@@ -193,7 +193,7 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
                 Prévia dos Dados ({csvData.length} registros)
               </h4>
             </div>
-            
+
             <div className="border border-border rounded-3xl overflow-hidden shadow-inner bg-slate-50/50">
               <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                 <table className="w-full text-xs">
@@ -235,10 +235,10 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
             <div>
               <h4 className="text-xl font-black text-foreground uppercase tracking-tight">Importação Concluída</h4>
               <p className="text-sm text-muted-foreground font-medium mt-2">
-                {importResults?.created} estabelecimentos foram importados com sucesso.
+                {importResults?.count || importResults?.created || 0} estabelecimentos foram importados com sucesso.
               </p>
             </div>
-            
+
             {importResults?.errors && importResults.errors.length > 0 && (
               <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl text-left max-h-[150px] overflow-y-auto custom-scrollbar">
                 <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -266,15 +266,15 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
       title="Importar Estabelecimentos"
       description={
         step === 'mapping' ? 'Defina como as colunas do CSV serão tratadas.' :
-        step === 'preview' ? 'Verifique se os dados estão corretos antes de importar.' :
-        step === 'result' ? 'Confira o resultado do processamento em massa.' :
-        'Importe múltiplos registros através de um arquivo CSV.'
+          step === 'preview' ? 'Verifique se os dados estão corretos antes de importar.' :
+            step === 'result' ? 'Confira o resultado do processamento em massa.' :
+              'Importe múltiplos registros através de um arquivo CSV.'
       }
       saveLabel={
         step === 'upload' ? undefined :
-        step === 'mapping' ? 'Ver Prévia' :
-        step === 'preview' ? 'Iniciar Importação' :
-        'Concluir'
+          step === 'mapping' ? 'Ver Prévia' :
+            step === 'preview' ? 'Iniciar Importação' :
+              'Concluir'
       }
       onSave={step === 'upload' ? undefined : () => {
         if (step === 'mapping') setStep('preview');
@@ -286,8 +286,8 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
       }}
       isLoading={importMutation.isPending}
       footer={step !== 'upload' && step !== 'result' ? (
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => step === 'mapping' ? setStep('upload') : setStep('mapping')}
           className="h-12 rounded-xl font-bold text-slate-500"
         >
@@ -307,14 +307,14 @@ export function ImportEstabelecimentosWizard({ isOpen, onClose }: ImportWizardPr
               const Icon = s.icon;
               const isActive = step === s.id;
               const isPast = arr.findIndex(x => x.id === step) > i;
-              
+
               return (
                 <React.Fragment key={s.id}>
                   <div className="flex items-center gap-3">
                     <div className={cn(
                       "h-10 w-10 rounded-2xl flex items-center justify-center transition-all",
-                      isActive ? "bg-primary text-white shadow-lg shadow-primary/20 scale-110" : 
-                      isPast ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400"
+                      isActive ? "bg-primary text-white shadow-lg shadow-primary/20 scale-110" :
+                        isPast ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400"
                     )}>
                       {isPast ? <CheckCircle2 size={20} /> : <Icon size={20} />}
                     </div>

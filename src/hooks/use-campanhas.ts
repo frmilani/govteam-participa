@@ -16,8 +16,9 @@ export function useCampanhas(filters: CampanhaFilters = {}) {
     queryKey: ["campanhas", filters],
     queryFn: async () => {
       const res = await apiFetch(`/api/campanhas?${queryParams.toString()}`);
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) throw new Error("Erro ao carregar campanhas");
-      return res.json();
+      return res.json() as Promise<any[]>;
     },
   });
 }
@@ -28,8 +29,9 @@ export function useCampanha(id: string | null) {
     queryFn: async () => {
       if (!id) throw new Error("ID da campanha não fornecido");
       const res = await apiFetch(`/api/campanhas/${id}`);
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) throw new Error("Erro ao carregar campanha");
-      return res.json();
+      return res.json() as Promise<any>;
     },
     enabled: !!id,
   });
@@ -45,11 +47,12 @@ export function useCreateCampanha() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao criar campanha");
       }
-      return res.json();
+      return res.json() as Promise<any>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["campanhas"] });
@@ -67,11 +70,12 @@ export function useUpdateCampanha() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao atualizar campanha");
       }
-      return res.json();
+      return res.json() as Promise<any>;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["campanhas"] });
@@ -88,11 +92,12 @@ export function useStartCampanha() {
       const res = await apiFetch(`/api/campanhas/${id}/start`, {
         method: "POST",
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao iniciar campanha");
       }
-      return res.json();
+      return res.json() as Promise<any>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["campanhas"] });
@@ -108,11 +113,12 @@ export function useDeleteCampanha() {
       const res = await apiFetch(`/api/campanhas/${id}`, {
         method: "DELETE",
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao excluir campanha");
       }
-      return res.json();
+      return res.json() as Promise<any>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["campanhas"] });
@@ -128,11 +134,12 @@ export function usePauseCampanha() {
       const res = await apiFetch(`/api/campanhas/${id}/pause`, {
         method: "POST",
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao pausar campanha");
       }
-      return res.json();
+      return res.json() as Promise<any>;
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["campanhas"] });
@@ -149,11 +156,12 @@ export function useCancelCampanha() {
       const res = await apiFetch(`/api/campanhas/${id}/cancel`, {
         method: "POST",
       });
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) {
-        const error = await res.json();
+        const error: any = await res.json();
         throw new Error(error.error || "Erro ao cancelar campanha");
       }
-      return res.json();
+      return res.json() as Promise<any>;
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["campanhas"] });

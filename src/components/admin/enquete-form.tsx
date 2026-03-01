@@ -26,6 +26,7 @@ import {
   useEstabelecimentos,
   usePresignedUrl,
 } from "@/hooks/use-estabelecimentos";
+import { apiFetch } from "@/lib/api-client";
 import { PageHeader } from '@/components/admin/PageHeader';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -73,7 +74,8 @@ export function EnqueteForm({ enquete, onClose }: EnqueteFormProps) {
   const { data: hubForms = [], isLoading: isLoadingHubForms } = useQuery({
     queryKey: ["hub-forms"],
     queryFn: async () => {
-      const res = await fetch("/api/hub/forms");
+      const res = await apiFetch("/api/hub/forms");
+      if (res.denied) throw new Error("HPAC_DENIED");
       if (!res.ok) throw new Error("Falha ao carregar formulários do Hub");
       return res.json() as Promise<
         Array<{ id: string; publicId: string; title: string }>

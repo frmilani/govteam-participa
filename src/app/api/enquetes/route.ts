@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { EnqueteService } from "@/lib/enquetes/enquete-service";
 import { EnqueteStatus, ModoAcesso } from "@prisma/client";
 import { z } from "zod";
-import { checkPermission, applyFieldMaskToArray, narrowUnitScope, getActiveUnitFromRequest } from "@/lib/hub-permissions";
+import { checkPermission, applyFieldMaskToArray, narrowUnitScope, getActiveUnitFromRequest, hpacDeniedResponse } from "@/lib/hub-permissions";
 
 const createEnqueteSchema = z.object({
   titulo: z.string().min(1, "Título é obrigatório"),
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
     );
 
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão para visualizar enquetes" }, { status: 403 });
+      return hpacDeniedResponse('premio:enquete', 'read');
     }
 
     const { searchParams } = new URL(req.url);
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (!perm.allowed) {
-      return NextResponse.json({ error: "Sem permissão para criar enquetes" }, { status: 403 });
+      return hpacDeniedResponse('premio:enquete', 'create');
     }
 
     const enquete = await EnqueteService.createEnquete(

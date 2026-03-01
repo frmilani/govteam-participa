@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api-client";
 
 export interface WhatsappInstance {
     id: string;
@@ -11,11 +12,12 @@ export function useWhatsappInstances() {
     return useQuery<WhatsappInstance[]>({
         queryKey: ["whatsapp-instances"],
         queryFn: async () => {
-            const response = await fetch("/api/whatsapp/instances");
+            const response = await apiFetch("/api/whatsapp/instances");
+            if (response.denied) throw new Error("HPAC_DENIED");
             if (!response.ok) {
                 throw new Error("Erro ao buscar instâncias do WhatsApp");
             }
-            return response.json();
+            return response.json() as Promise<WhatsappInstance[]>;
         },
     });
 }

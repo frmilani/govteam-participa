@@ -6,6 +6,8 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { UnitProvider } from "@/contexts/UnitContext";
 import { fetchMyUnits } from "@/lib/hub-permissions";
 
+import { AccessDeniedProvider } from "@/components/hpac/AccessDeniedModal";
+
 export default async function AdminLayout({
   children,
 }: {
@@ -20,25 +22,27 @@ export default async function AdminLayout({
     : null;
 
   return (
-    <UnitProvider units={myUnits?.units || []} hasGlobalAccess={myUnits?.hasGlobalAccess ?? false}>
-      <ToastProvider>
-        <SidebarProvider>
-          <div className="flex h-screen bg-background overflow-hidden">
-            <Sidebar />
+    <AccessDeniedProvider>
+      <UnitProvider units={myUnits?.units || []} hasGlobalAccess={myUnits?.hasGlobalAccess ?? false}>
+        <ToastProvider>
+          <SidebarProvider>
+            <div className="flex h-screen bg-background overflow-hidden">
+              <Sidebar />
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-              {/* Header */}
-              <AdminHeader />
+              {/* Main Content */}
+              <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                {/* Header */}
+                <AdminHeader />
 
-              {/* Scrollable Area */}
-              <main className="flex-1 overflow-y-auto px-container-desktop py-component-lg custom-scrollbar relative">
-                {children}
-              </main>
+                {/* Scrollable Area */}
+                <main className="flex-1 overflow-y-auto px-container-desktop py-component-lg custom-scrollbar relative">
+                  {children}
+                </main>
+              </div>
             </div>
-          </div>
-        </SidebarProvider>
-      </ToastProvider>
-    </UnitProvider>
+          </SidebarProvider>
+        </ToastProvider>
+      </UnitProvider>
+    </AccessDeniedProvider>
   );
 }

@@ -97,7 +97,7 @@ export async function createSegmento(data: {
       icone: data.icone || "Folder",
       ordem: nextOrdem,
       organizationId,
-      templateQualidade: data.templateQualidadeId ? { connect: { id: data.templateQualidadeId } } : undefined
+      templateQualidadeId: data.templateQualidadeId || null
     }
   });
 }

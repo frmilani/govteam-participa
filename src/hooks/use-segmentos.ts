@@ -25,8 +25,9 @@ export function useSegmentos(options?: { onlyPopulated?: boolean }) {
     queryKey: ["segmentos", { onlyPopulated }],
     queryFn: async () => {
       const response = await apiFetch(`/api/segmentos${onlyPopulated ? "?onlyPopulated=true" : ""}`);
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) throw new Error("Erro ao carregar segmentos");
-      return response.json();
+      return response.json() as Promise<Segmento[]>;
     },
   });
 }
@@ -40,11 +41,12 @@ export function useCreateSegmento() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) {
-        const error = await response.json();
+        const error: any = await response.json();
         throw new Error(error.error || "Erro ao criar segmento");
       }
-      return response.json();
+      return response.json() as Promise<Segmento>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["segmentos"] });
@@ -61,11 +63,12 @@ export function useUpdateSegmento() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) {
-        const error = await response.json();
+        const error: any = await response.json();
         throw new Error(error.error || "Erro ao atualizar segmento");
       }
-      return response.json();
+      return response.json() as Promise<Segmento>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["segmentos"] });
@@ -80,8 +83,9 @@ export function useDeleteSegmento() {
       const response = await apiFetch(`/api/segmentos/${id}`, {
         method: "DELETE",
       });
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) {
-        const error = await response.json();
+        const error: any = await response.json();
         throw new Error(error.error || "Erro ao excluir segmento");
       }
     },
@@ -100,8 +104,9 @@ export function useReorderSegmentos() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ updates }),
       });
+      if (response.denied) throw new Error("HPAC_DENIED");
       if (!response.ok) throw new Error("Erro ao reordenar segmentos");
-      return response.json();
+      return response.json() as Promise<Segmento[]>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["segmentos"] });
