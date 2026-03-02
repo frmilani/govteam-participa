@@ -99,7 +99,7 @@ function buildResearchSteps(researchConfig: any): FormElement[] {
         stepChildren.push({
           id: fid,
           name: fname,
-          type: 'rating',
+          type: 'rating' as any,
           label: p.texto,
           ratingMax: 5,
           ratingIcon: 'star',
@@ -112,7 +112,7 @@ function buildResearchSteps(researchConfig: any): FormElement[] {
         stepChildren.push({
           id: fid,
           name: fname,
-          type: 'nps',
+          type: 'nps' as any,
           label: p.texto,
           ratingLowLabel: 'Péssimo',
           ratingHighLabel: 'Excelente',
@@ -681,9 +681,9 @@ export default function VotePage() {
           {/* MAIN CONTENT */}
           <div className="flex-1 flex flex-col relative w-full lg:min-h-screen">
 
-            {stage === 'welcome' && <WelcomeScreen enquete={enquete} onStart={handleStart} isEmbedded={true} />}
-            {stage === 'thanks' && <ThankYouScreen enquete={enquete} isEmbedded={true} customMessage={thankYouMessage} />}
-            {stage === 'gate' && <GamifiedGate enquete={enquete} organizationId={enquete.organizationId} onComplete={handleGateComplete} isEmbedded={true} />}
+            {stage === 'welcome' && <WelcomeScreen enquete={enquete} onStart={handleStart} />}
+            {stage === 'thanks' && <ThankYouScreen enquete={enquete} customMessage={thankYouMessage} />}
+            {stage === 'gate' && <GamifiedGate enquete={enquete} organizationId={enquete.organizationId} onComplete={handleGateComplete} />}
 
             {stage === 'form' && (
               <>
@@ -738,7 +738,6 @@ export default function VotePage() {
                             initialValues={formData}
                             initialStepIndex={activeStepIndex}
                             onStepChange={handleStepChange}
-                            isEmbedded={true}
                           />
                         ) : (
                           <div className="py-20 text-center">

@@ -11,6 +11,7 @@ const formbuilderDistEntry = path.resolve(__dirname, '../formbuilder/dist-packag
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     // basePath removido — roteamento por path é feito pelo Traefik (StripPrefix)
+    turbopack: {},
     // Em produção: Traefik recebe /participa/* → strip → encaminha /* para este container
     // Em dev: acessa direto em localhost:3006/*
     allowedDevOrigins: ['prefeitura-espigao.govteam.com.br'],

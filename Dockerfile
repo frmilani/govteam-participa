@@ -11,6 +11,7 @@ RUN apk add --no-cache libc6-compat
 
 COPY vendor ./vendor
 COPY package.json package-lock.json* ./
+# Cache break for dependencies
 RUN npm install --include=dev --legacy-peer-deps --ignore-scripts
 
 COPY prisma ./prisma
