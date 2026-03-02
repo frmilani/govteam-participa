@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-and-push:
-    name: Build Premio-Destaque Docker Image
+    name: Build Participa Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -33,7 +33,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/govteam-premio-destaque
+          images: ghcr.io/${{ github.repository_owner }}/govteam-participa
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
