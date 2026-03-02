@@ -10,6 +10,7 @@ export interface WhatsappMessage {
   mediaUrl?: string;
   type?: 'text' | 'image' | 'audio' | 'video' | 'menu' | 'interactive';
   options?: any;
+  instanceId?: string; // Permitir passar instância específica
 }
 
 export class WhatsappService {
@@ -25,14 +26,16 @@ export class WhatsappService {
    * Envia uma mensagem de texto via WhatsApp
    */
   static async sendMessage(message: WhatsappMessage) {
-    if (!WHATSAPP_API_URL || !WHATSAPP_API_KEY || !WHATSAPP_INSTANCE_ID) {
-      throw new Error("Configurações de WhatsApp não encontradas no ambiente");
+    const instanceId = message.instanceId || WHATSAPP_INSTANCE_ID;
+
+    if (!WHATSAPP_API_URL || !WHATSAPP_API_KEY || !instanceId) {
+      throw new Error("Configurações de WhatsApp não encontradas (URL, API_KEY ou INSTANCE_ID)");
     }
 
     try {
       // Se tiver mediaUrl, usamos o endpoint de media
       if (message.mediaUrl && message.type !== 'text') {
-        const endpoint = `/message/sendMedia/${WHATSAPP_INSTANCE_ID}`;
+        const endpoint = `/message/sendMedia/${instanceId}`;
 
         // Mapear tipos Evolution: image, video, document, audio
         let mediaType = 'image';
@@ -52,7 +55,7 @@ export class WhatsappService {
       }
 
       // Caso contrário, enviamos texto simples
-      const endpoint = `/message/sendText/${WHATSAPP_INSTANCE_ID}`;
+      const endpoint = `/message/sendText/${instanceId}`;
       const payload = {
         number: this.formatNumber(message.to),
         text: message.text,
@@ -64,35 +67,30 @@ export class WhatsappService {
       return response.data;
     } catch (error: any) {
       console.error("[WhatsappService] Erro ao enviar mensagem:", error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || "Erro na comunicação com a API de WhatsApp");
+      throw new Error(error.response?.data?.message || `Erro na comunicação com a API de WhatsApp (Instance: ${instanceId})`);
     }
   }
 
   /**
    * Envia uma mensagem interativa (Menu/Botões) via WhatsApp
    */
-  static async sendMenu(message: WhatsappMenuMessage) {
-    if (!WHATSAPP_API_URL || !WHATSAPP_API_KEY || !WHATSAPP_INSTANCE_ID) {
-      throw new Error("Configurações de WhatsApp não encontradas no ambiente");
+  static async sendMenu(message: WhatsappMenuMessage & { instanceId?: string }) {
+    const instanceId = message.instanceId || WHATSAPP_INSTANCE_ID;
+
+    if (!WHATSAPP_API_URL || !WHATSAPP_API_KEY || !instanceId) {
+      throw new Error("Configurações de WhatsApp não encontradas (URL, API_KEY ou INSTANCE_ID)");
     }
 
     try {
-      const endpoint = `/message/send~menu`; // Endpoint específico para menus/botões
       const payload = {
         number: this.formatNumber(message.to),
         message: message.text,
         render: message.renderType || 'buttons', // 'buttons' ou 'list'
         options: message.options, // Array de strings "Texto|ID"
         delay: 1200,
-        instance: WHATSAPP_INSTANCE_ID // Algumas versões da API pedem instance no body, outras na URL. Mantendo padrão da URL se possível, mas enviando aqui por segurança da lib uazapi.
+        instance: instanceId
       };
 
-      // Nota: Uazapi V2 geralmente usa endpoint /message/send~menu com POST
-      // e autenticação via header 'apikey'.
-      // A URL base já deve incluir /message se a API for uazapiGO, mas aqui estamos assumindo
-      // que a baseURL é a raiz da API. Ajuste conforme necessário.
-
-      // Sobrescrevendo a URL completa para garantir
       const fullUrl = `${WHATSAPP_API_URL}/message/send~menu`;
 
       const response = await axios.post(fullUrl, payload, {
@@ -124,9 +122,12 @@ export class WhatsappService {
   /**
    * Verifica o status da instância de WhatsApp
    */
-  static async getInstanceStatus() {
+  static async getInstanceStatus(specificInstanceId?: string) {
+    const instanceId = specificInstanceId || WHATSAPP_INSTANCE_ID;
+    if (!instanceId) return { state: 'DISCONNECTED' };
+
     try {
-      const response = await this.client.get(`/instance/connectionState/${WHATSAPP_INSTANCE_ID}`);
+      const response = await this.client.get(`/instance/connectionState/${instanceId}`);
       return response.data;
     } catch (error: any) {
       console.error("[WhatsappService] Erro ao verificar status:", error.message);

@@ -35,6 +35,14 @@ const updateEnqueteSchema = z.object({
   termosLgpd: z.string().optional().nullable(),
   resultadosStatus: z.enum(["EM_CONFERENCIA", "PUBLICADO", "CANCELADO"]).optional(),
   configResultados: z.any().optional(),
+  // E2.2: Campos da aba Pesquisa
+  modoColeta: z.string().optional(),
+  modoDistribuicao: z.string().optional(),
+  incluirQualidade: z.boolean().optional(),
+  minCategoriasPorEleitor: z.number().nullable().optional(),
+  maxCategoriasPorEleitor: z.number().nullable().optional(),
+  randomizarOpcoes: z.boolean().optional(),
+  configPesquisa: z.record(z.string(), z.any()).nullable().optional(),
 });
 
 
@@ -53,19 +61,29 @@ export async function GET(
     const perm = await checkPermission(
       session.user.id,
       session.user.organizationId,
-      'premio:enquete',
+      'participa:enquete',
       'read',
       { resourceId: id }
     );
 
+
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:enquete', 'read');
+      return hpacDeniedResponse('participa:enquete', 'read');
     }
 
+    const unitWhere = perm.unitScope ? {
+      OR: [
+        { unitId: { in: perm.unitScope } },
+        { unitId: null }
+      ]
+    } : {};
+
     const hasAccess = await prisma.enquete.findFirst({
-      where: { id, organizationId: session.user.organizationId, ...buildUnitScopeWhere(perm.unitScope) },
+      where: { id, organizationId: session.user.organizationId, ...unitWhere },
       select: { id: true }
     });
+
+
     if (!hasAccess) return NextResponse.json({ error: "Enquete não encontrada ou acesso restrito." }, { status: 404 });
 
     const enquete = await EnqueteService.getEnqueteById(id, session.user.organizationId);
@@ -98,17 +116,24 @@ export async function PUT(
     const perm = await checkPermission(
       session.user.id,
       session.user.organizationId,
-      'premio:enquete',
+      'participa:enquete',
       'update',
       { resourceId: id }
     );
 
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:enquete', 'update');
+      return hpacDeniedResponse('participa:enquete', 'update');
     }
 
+    const unitWhere = perm.unitScope ? {
+      OR: [
+        { unitId: { in: perm.unitScope } },
+        { unitId: null }
+      ]
+    } : {};
+
     const hasAccess = await prisma.enquete.findFirst({
-      where: { id, organizationId: session.user.organizationId, ...buildUnitScopeWhere(perm.unitScope) },
+      where: { id, organizationId: session.user.organizationId, ...unitWhere },
       select: { id: true }
     });
     if (!hasAccess) return NextResponse.json({ error: "Enquete não encontrada ou acesso restrito." }, { status: 404 });
@@ -150,17 +175,24 @@ export async function DELETE(
     const perm = await checkPermission(
       session.user.id,
       session.user.organizationId,
-      'premio:enquete',
+      'participa:enquete',
       'delete',
       { resourceId: id }
     );
 
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:enquete', 'delete');
+      return hpacDeniedResponse('participa:enquete', 'delete');
     }
 
+    const unitWhere = perm.unitScope ? {
+      OR: [
+        { unitId: { in: perm.unitScope } },
+        { unitId: null }
+      ]
+    } : {};
+
     const hasAccess = await prisma.enquete.findFirst({
-      where: { id, organizationId: session.user.organizationId, ...buildUnitScopeWhere(perm.unitScope) },
+      where: { id, organizationId: session.user.organizationId, ...unitWhere },
       select: { id: true }
     });
     if (!hasAccess) return NextResponse.json({ error: "Enquete não encontrada ou acesso restrito." }, { status: 404 });

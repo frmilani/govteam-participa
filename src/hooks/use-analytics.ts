@@ -4,7 +4,7 @@ export function useAnalyticsOverview(enqueteId: string) {
     return useQuery({
         queryKey: ['analytics', 'overview', enqueteId],
         queryFn: async () => {
-            const res = await fetch(`/api/admin/enquetes/${enqueteId}/analytics/overview`);
+            const res = await fetch(`/api/enquetes/${enqueteId}/analytics/overview`);
             if (!res.ok) throw new Error("Erro ao carregar overview");
             return res.json();
         }
@@ -15,7 +15,7 @@ export function useAnalyticsRanking(enqueteId: string, categoriaId?: string) {
     return useQuery({
         queryKey: ['analytics', 'ranking', enqueteId, categoriaId],
         queryFn: async () => {
-            const url = new URL(`/api/admin/enquetes/${enqueteId}/analytics/ranking`, window.location.origin);
+            const url = new URL(`/api/enquetes/${enqueteId}/analytics/ranking`, window.location.origin);
             if (categoriaId) url.searchParams.set('categoriaId', categoriaId);
 
             const res = await fetch(url.toString());
@@ -29,7 +29,7 @@ export function useAnalyticsDemographics(enqueteId: string, estabelecimentoId?: 
     return useQuery({
         queryKey: ['analytics', 'demographics', enqueteId, estabelecimentoId],
         queryFn: async () => {
-            const url = new URL(`/api/admin/enquetes/${enqueteId}/analytics/demographics`, window.location.origin);
+            const url = new URL(`/api/enquetes/${enqueteId}/analytics/demographics`, window.location.origin);
             if (estabelecimentoId && estabelecimentoId !== 'all') {
                 url.searchParams.set('estabelecimentoId', estabelecimentoId);
             }
@@ -45,7 +45,7 @@ export function useAnalyticsQualidade(enqueteId: string, categoriaId?: string) {
     return useQuery({
         queryKey: ['analytics', 'qualidade', enqueteId, categoriaId],
         queryFn: async () => {
-            const url = new URL(`/api/admin/enquetes/${enqueteId}/analytics/qualidade`, window.location.origin);
+            const url = new URL(`/api/enquetes/${enqueteId}/analytics/qualidade`, window.location.origin);
             if (categoriaId) url.searchParams.set('categoriaId', categoriaId);
 
             const res = await fetch(url.toString());

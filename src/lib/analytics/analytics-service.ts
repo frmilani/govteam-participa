@@ -429,10 +429,10 @@ export async function getRanking(enqueteId: string, categoriaId?: string) {
 
     const flatAggregation = Array.from(mapaHibrido.entries()).map(([id, count]) => ({ estabelecimentoId: id, _count: count }));
     flatAggregation.sort((a, b) => b._count - a._count);
-    const validos = flatAggregation.slice(0, 50).filter(g => g._count >= 5); // Take limit 50, and Apply > 5 anonymity 
+    const validos = flatAggregation.slice(0, 50).filter(g => g._count >= 1); // Reduzido de 5 para 1 para ambiente de teste
 
     if (validos.length === 0 && flatAggregation.length > 0) {
-        return [{ insuficiente: true, mensagem: "As respostas não atingiram o volume minimo de anonimizacao (5 votos)" }];
+        return [{ insuficiente: true, mensagem: "As respostas não atingiram o volume minimo de anonimizacao (1 voto)" }];
     }
 
     const ids = validos.map(v => v.estabelecimentoId);
@@ -488,7 +488,7 @@ export async function getDemographics(enqueteId: string, estabelecimentoId?: str
     for (const [category, values] of Object.entries(dist)) {
         safeDist[category] = {};
         for (const [val, count] of Object.entries(values)) {
-            if (count >= 5) {
+            if (count >= 1) { // Reduzido de 5 para 1 para ambiente de teste
                 safeDist[category][val] = count;
             }
         }
@@ -523,7 +523,7 @@ export async function getQualidade(enqueteId: string, categoriaId?: string) {
 
     const output: any[] = [];
     for (const [pId, stats] of Object.entries(grouped)) {
-        if (stats.count < 5) continue; // Threshold
+        if (stats.count < 1) continue; // Reduzido de 5 para 1 para ambiente de teste
 
         const pData = await (prisma as any).perguntaQualidade.findUnique({
             where: { id: pId },
@@ -541,7 +541,7 @@ export async function getQualidade(enqueteId: string, categoriaId?: string) {
     }
 
     if (Object.keys(grouped).length > 0 && output.length === 0) {
-        return [{ insuficiente: true, mensagem: "Volume muito pequeno (Min: 5 respostas)" }];
+        return [{ insuficiente: true, mensagem: "Volume muito pequeno (Min: 1 resposta)" }];
     }
 
     return output;

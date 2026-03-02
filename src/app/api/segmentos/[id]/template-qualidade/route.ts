@@ -38,10 +38,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
                 return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
             }
             // Check HPAC só para admin
-            const perm = await checkPermission(session.user.id, organizationId, "premio:template", "read");
+            const perm = await checkPermission(session.user.id, organizationId, "participa:template", "read");
             if (!perm.allowed) {
                 // Tenta check de enquete/segmento reading (pode não ser de admin global)
-                const perm2 = await checkPermission(session.user.id, organizationId, "premio:enquete", "read");
+                const perm2 = await checkPermission(session.user.id, organizationId, "participa:enquete", "read");
                 if (!perm2.allowed) {
                     return NextResponse.json({ error: "Permissão insuficiente" }, { status: 403 });
                 }

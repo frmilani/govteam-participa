@@ -24,7 +24,10 @@ export async function POST(
 
     return NextResponse.json({ success: true, message: "Campanha enviada para fila de processamento" });
   } catch (error: any) {
-    console.error("[API_CAMPANHA_START]", error);
-    return NextResponse.json({ error: error.message || "Erro ao iniciar campanha" }, { status: 500 });
+    console.error("[API_CAMPANHA_START] Erro fatal ao iniciar campanha:", error);
+    return NextResponse.json({
+      error: error.message || "Erro ao iniciar campanha",
+      details: error.stack
+    }, { status: 500 });
   }
 }

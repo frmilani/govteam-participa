@@ -48,12 +48,12 @@ export async function GET(req: NextRequest) {
     const perm = await checkPermission(
       session.user.id,
       session.user.organizationId,
-      'premio:campanha',
+      'participa:campanha',
       'read'
     );
 
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:campanha', 'read');
+      return hpacDeniedResponse('participa:campanha', 'read');
     }
 
     const { searchParams } = new URL(req.url);
@@ -86,12 +86,12 @@ export async function POST(req: NextRequest) {
     const perm = await checkPermission(
       userId,
       session.user.organizationId,
-      'premio:campanha',
+      'participa:campanha',
       'create'
     );
 
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:campanha', 'create');
+      return hpacDeniedResponse('participa:campanha', 'create');
     }
 
     const body = await req.json();

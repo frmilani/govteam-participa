@@ -90,7 +90,7 @@ export function EnqueteForm({ enquete, onClose }: EnqueteFormProps) {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: allSegmentos = [] } = useSegmentos({ onlyPopulated: true });
+  const { data: allSegmentos = [] } = useSegmentos({ onlyPopulated: false });
   const { data: allEstabelecimentos = [] } = useEstabelecimentos();
 
   const methods = useForm<EnqueteFormData>({
@@ -457,6 +457,7 @@ export function EnqueteForm({ enquete, onClose }: EnqueteFormProps) {
             title={enquete ? "Editar Enquete" : "Nova Enquete"}
             description="Configure todos os detalhes da sua premiação."
             badgeText="Configuração"
+            className="shrink-0"
           >
             <div className="flex items-center gap-3">
               <Button

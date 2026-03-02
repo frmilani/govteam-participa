@@ -33,12 +33,15 @@ export async function POST(req: NextRequest) {
       errors: [] as string[],
     };
 
+    const unitId = (await import("@/lib/hub-permissions")).getActiveUnitFromRequest(req) || session.user.unit_id;
+
     for (const leadData of validatedData.leads) {
       try {
         await LeadService.createLead(session.user.organizationId, {
           ...leadData,
           email: leadData.email || null,
           origem: "IMPORTACAO" as any,
+          unitId: unitId,
         });
         results.created++;
       } catch (error: any) {

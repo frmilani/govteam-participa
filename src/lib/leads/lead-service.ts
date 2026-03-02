@@ -15,7 +15,13 @@ export class LeadService {
     const { search, tagIds, status, optOut, unitScope } = filters;
 
     // HPAC: build unit scope filter
-    const unitWhere = unitScope ? { unitId: { in: unitScope } } : {};
+    // We include null to ensure "Global/Unassigned" leads are visible even in narrowed scopes
+    const unitWhere = unitScope ? {
+      OR: [
+        { unitId: { in: unitScope } },
+        { unitId: null }
+      ]
+    } : {};
 
     return await prisma.lead.findMany({
       where: {
@@ -109,6 +115,7 @@ export class LeadService {
       tipoPessoa?: TipoPessoa;
       cpf?: string | null;
       cnpj?: string | null;
+      unitId?: string | null;
     }
   ) {
     const formattedWhatsApp = this.formatWhatsApp(data.whatsapp);
@@ -132,6 +139,7 @@ export class LeadService {
         tipoPessoa: data.tipoPessoa,
         cpf: data.cpf,
         cnpj: data.cnpj,
+        unitId: data.unitId,
         origem: data.origem || OrigemLead.MANUAL,
         consentimentoEm: data.consentimentoEm || new Date(),
         tags: data.tagIds
@@ -168,6 +176,7 @@ export class LeadService {
       tipoPessoa?: TipoPessoa;
       cpf?: string | null;
       cnpj?: string | null;
+      unitId?: string | null;
     }
   ) {
     const formattedWhatsApp = data.whatsapp ? this.formatWhatsApp(data.whatsapp) : undefined;
@@ -209,6 +218,7 @@ export class LeadService {
         tipoPessoa: data.tipoPessoa,
         cpf: data.cpf,
         cnpj: data.cnpj,
+        unitId: data.unitId,
         optOut: data.optOut,
         optOutEm: data.optOut === true ? new Date() : (data.optOut === false ? null : undefined),
         tags: data.tagIds
@@ -261,6 +271,7 @@ export class LeadService {
       email?: string | null;
       instagram?: string | null;
       origem?: OrigemLead;
+      unitId?: string | null;
     }
   ) {
     const formattedWhatsApp = this.formatWhatsApp(data.whatsapp);
@@ -311,6 +322,7 @@ export class LeadService {
             cpf: data.cpf || existingLead.cpf,
             email: data.email || existingLead.email,
             instagram: data.instagram || existingLead.instagram,
+            unitId: data.unitId || existingLead.unitId,
             cupons: finalCoupons,
             statusVerificacao: newStatus,
             ultimaInteracao: new Date(),
@@ -326,6 +338,7 @@ export class LeadService {
           cpf: data.cpf,
           email: data.email,
           instagram: data.instagram,
+          unitId: data.unitId,
           origem: data.origem || OrigemLead.FORMULARIO_WEB,
           cupons: totalCoupons,
           statusVerificacao: VerificacaoStatus.NAO_VERIFICADO,

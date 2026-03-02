@@ -20,6 +20,7 @@ export interface CampanhaJobData {
     campanhaId: string;
     mensagens: any[];
     organizationId: string;
+    instanceId?: string; // Adicionado para suportar multi-instância no worker
     strategy?: 'DIRECT' | 'SOFT_BLOCK' | 'OPT_IN';
     initialMessage?: string;
     stage?: 'INITIAL' | 'FULFILLMENT';

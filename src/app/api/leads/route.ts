@@ -17,6 +17,7 @@ const leadSchema = z.object({
   tipoPessoa: z.enum(['FISICA', 'JURIDICA']).optional().default('FISICA'),
   cpf: z.string().nullable().optional(),
   cnpj: z.string().nullable().optional(),
+  unitId: z.string().nullable().optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -30,12 +31,12 @@ export async function GET(req: NextRequest) {
     const perm = await checkPermission(
       session.user.id,
       session.user.organizationId,
-      'premio:lead',
+      'participa:lead',
       'read'
     );
 
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:lead', 'read');
+      return hpacDeniedResponse('participa:lead', 'read');
     }
 
     const { searchParams } = new URL(req.url);
@@ -69,16 +70,19 @@ export async function POST(req: NextRequest) {
     const perm = await checkPermission(
       session.user.id,
       session.user.organizationId,
-      'premio:lead',
+      'participa:lead',
       'create'
     );
 
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:lead', 'create');
+      return hpacDeniedResponse('participa:lead', 'create');
     }
 
     const body = await req.json();
     const validatedData = leadSchema.parse(body);
+
+    // Contexto de unidade
+    const activeUnitId = getActiveUnitFromRequest(req) || session.user.unit_id;
 
     const lead = await LeadService.createLead(
       session.user.organizationId,
@@ -88,6 +92,7 @@ export async function POST(req: NextRequest) {
         tipoPessoa: validatedData.tipoPessoa,
         cpf: validatedData.cpf,
         cnpj: validatedData.cnpj,
+        unitId: validatedData.unitId || activeUnitId,
       }
     );
 

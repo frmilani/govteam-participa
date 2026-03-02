@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { setupCampanhaWorker } from '../src/lib/campanhas/worker';
 
 console.log('🚀 Iniciando Worker de WhatsApp...');

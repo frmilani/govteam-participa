@@ -99,6 +99,7 @@ export function TemplateQualidadeForm({ templateId, onClose }: Props) {
                 title={templateId ? "Editar Template" : "Novo Template Qualidade"}
                 description="Agrupe e estruture os comportamentos armadilhas para validação."
                 badgeText="Form Builder"
+                className="shrink-0"
             >
                 <div className="flex items-center gap-3">
                     <Button
@@ -214,7 +215,7 @@ export function TemplateQualidadeForm({ templateId, onClose }: Props) {
                                                         placeholder="Ex: Muito Ruim, Ruim, Regular, Bom, Excelente"
                                                         className="h-8 text-xs bg-background"
                                                         {...register(`perguntas.${index}.opcoes` as const, {
-                                                            setValueAs: (v) => v ? v.split(',').map((s: string) => s.trim()).filter(Boolean) : []
+                                                            setValueAs: (v) => typeof v === 'string' ? v.split(',').map((s: string) => s.trim()).filter(Boolean) : v
                                                         })}
                                                         defaultValue={formValues?.[index]?.opcoes?.join(', ') || ""}
                                                     />

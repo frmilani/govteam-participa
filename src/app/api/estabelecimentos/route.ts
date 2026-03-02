@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
       permResult = await checkPermission(
         session?.user?.id,
         organizationId,
-        'premio:estabelecimento',
+        'participa:estabelecimento',
         'read'
       );
     } catch {
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!permResult?.allowed) {
-      return hpacDeniedResponse('premio:estabelecimento', 'read');
+      return hpacDeniedResponse('participa:estabelecimento', 'read');
     }
 
     const { searchParams } = new URL(req.url);
@@ -134,11 +134,11 @@ export async function POST(req: NextRequest) {
     const perm = await checkPermission(
       session?.user?.id,
       organizationId,
-      'premio:estabelecimento',
+      'participa:estabelecimento',
       'create'
     );
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:estabelecimento', 'create');
+      return hpacDeniedResponse('participa:estabelecimento', 'create');
     }
 
     const body = await req.json();

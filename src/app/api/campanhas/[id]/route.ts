@@ -26,16 +26,21 @@ export async function GET(
         const perm = await checkPermission(
             session.user.id,
             orgId,
-            'premio:campanha',
+            'participa:campanha',
             'read'
         );
 
         if (!perm.allowed) {
-            return hpacDeniedResponse('premio:campanha', 'read');
+            return hpacDeniedResponse('participa:campanha', 'read');
         }
 
+        // Correção de escopo: permitir unitId null (global) para usuários com unitScope
+        const unitScopeFilter = perm.unitScope && perm.unitScope.length > 0
+            ? { OR: [{ unitId: { in: perm.unitScope } }, { unitId: null }] }
+            : {};
+
         const hasAccess = await prisma.campanha.findFirst({
-            where: { id, organizationId: orgId, ...buildUnitScopeWhere(perm.unitScope) },
+            where: { id, organizationId: orgId, ...unitScopeFilter },
             select: { id: true }
         });
         if (!hasAccess) return NextResponse.json({ error: "Campanha não encontrada ou acesso restrito." }, { status: 404 });
@@ -73,16 +78,20 @@ export async function PUT(
         const perm = await checkPermission(
             session.user.id,
             orgId,
-            'premio:campanha',
+            'participa:campanha',
             'update'
         );
 
         if (!perm.allowed) {
-            return hpacDeniedResponse('premio:campanha', 'update');
+            return hpacDeniedResponse('participa:campanha', 'update');
         }
 
+        const unitScopeFilter = perm.unitScope && perm.unitScope.length > 0
+            ? { OR: [{ unitId: { in: perm.unitScope } }, { unitId: null }] }
+            : {};
+
         const hasAccess = await prisma.campanha.findFirst({
-            where: { id, organizationId: orgId, ...buildUnitScopeWhere(perm.unitScope) },
+            where: { id, organizationId: orgId, ...unitScopeFilter },
             select: { id: true }
         });
         if (!hasAccess) return NextResponse.json({ error: "Campanha não encontrada ou acesso restrito." }, { status: 404 });
@@ -150,16 +159,20 @@ export async function DELETE(
         const perm = await checkPermission(
             session.user.id,
             orgId,
-            'premio:campanha',
+            'participa:campanha',
             'delete'
         );
 
         if (!perm.allowed) {
-            return hpacDeniedResponse('premio:campanha', 'delete');
+            return hpacDeniedResponse('participa:campanha', 'delete');
         }
 
+        const unitScopeFilter = perm.unitScope && perm.unitScope.length > 0
+            ? { OR: [{ unitId: { in: perm.unitScope } }, { unitId: null }] }
+            : {};
+
         const hasAccess = await prisma.campanha.findFirst({
-            where: { id, organizationId: orgId, ...buildUnitScopeWhere(perm.unitScope) },
+            where: { id, organizationId: orgId, ...unitScopeFilter },
             select: { id: true }
         });
         if (!hasAccess) return NextResponse.json({ error: "Campanha não encontrada ou acesso restrito." }, { status: 404 });

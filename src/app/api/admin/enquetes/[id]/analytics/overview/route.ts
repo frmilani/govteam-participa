@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         const session = await auth();
         if (!session?.user?.organizationId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const hpac = await checkPermission(session.user.id || "", session.user.organizationId || "", 'premio:enquete', 'read', { resourceId: id });
+        const hpac = await checkPermission(session.user.id || "", session.user.organizationId || "", 'participa:enquete', 'read', { resourceId: id });
         if (!hpac.allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
         const enquete = await prisma.enquete.findFirst({

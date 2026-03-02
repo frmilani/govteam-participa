@@ -10,8 +10,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         if (!session?.user?.organizationId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
         // Needs create permission to duplicate
-        const perm = await checkPermission(session.user.id, session.user.organizationId, "premio:template", "create");
-        if (!perm.allowed) return hpacDeniedResponse("premio:template", "create");
+        const perm = await checkPermission(session.user.id, session.user.organizationId, "participa:template", "create");
+        if (!perm.allowed) return hpacDeniedResponse("participa:template", "create");
 
         const duplicated = await duplicateTemplate(id, session.user.organizationId);
         return NextResponse.json(duplicated, { status: 201 });

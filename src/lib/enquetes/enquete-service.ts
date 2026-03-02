@@ -19,7 +19,13 @@ export class EnqueteService {
     const { status, search, unitScope } = filters;
 
     // HPAC: build unit scope filter
-    const unitWhere = unitScope ? { unitId: { in: unitScope } } : {};
+    // Always include global items (unitId: null) along with the narrowed scope
+    const unitWhere = unitScope ? {
+      OR: [
+        { unitId: { in: unitScope } },
+        { unitId: null }
+      ]
+    } : {};
 
     return await prisma.enquete.findMany({
       where: {
@@ -58,6 +64,7 @@ export class EnqueteService {
     data: {
       titulo: string;
       descricao?: string;
+      tipoPesquisa?: string;
       formPublicId: string;
       unitId?: string;
       modoAcesso: ModoAcesso;
@@ -83,6 +90,13 @@ export class EnqueteService {
       termosLgpd?: string | null;
       resultadosStatus?: ResultadosStatus;
       configResultados?: any;
+      // E2.2: Campos da aba Pesquisa
+      modoColeta?: string;
+      modoDistribuicao?: string;
+      incluirQualidade?: boolean;
+      maxCategoriasPorEleitor?: number | null;
+      randomizarOpcoes?: boolean;
+      configPesquisa?: Record<string, any> | null;
     }
 
   ) {
@@ -96,6 +110,7 @@ export class EnqueteService {
         unitId: data.unitId || null,
         titulo: data.titulo,
         descricao: data.descricao,
+        tipoPesquisa: data.tipoPesquisa,
         formPublicId: data.formPublicId,
         modoAcesso: data.modoAcesso || "HIBRIDO",
         hubFormId: hubSchema.id, // Armazenamos o ID interno do Hub
@@ -127,8 +142,14 @@ export class EnqueteService {
         termosLgpd: data.termosLgpd,
         resultadosStatus: data.resultadosStatus || "EM_CONFERENCIA",
         configResultados: data.configResultados as Prisma.InputJsonValue || { exibirVotos: true, exibirPercentual: true },
+        // E2.2: Campos da aba Pesquisa
+        modoColeta: data.modoColeta,
+        modoDistribuicao: data.modoDistribuicao,
+        incluirQualidade: data.incluirQualidade,
+        maxCategoriasPorEleitor: data.maxCategoriasPorEleitor ?? null,
+        randomizarOpcoes: data.randomizarOpcoes,
+        configPesquisa: data.configPesquisa != null ? (data.configPesquisa as Prisma.InputJsonValue) : Prisma.JsonNull,
       },
-
     });
   }
 
@@ -141,6 +162,7 @@ export class EnqueteService {
     data: Partial<{
       titulo: string;
       descricao: string;
+      tipoPesquisa: string;
       formPublicId: string;
       modoAcesso: ModoAcesso;
       configVisual: any;
@@ -166,6 +188,13 @@ export class EnqueteService {
       termosLgpd: string | null;
       resultadosStatus: ResultadosStatus;
       configResultados: any;
+      // E2.2: Campos da aba Pesquisa
+      modoColeta: string;
+      modoDistribuicao: string;
+      incluirQualidade: boolean;
+      maxCategoriasPorEleitor: number | null;
+      randomizarOpcoes: boolean;
+      configPesquisa: Record<string, any> | null;
     }>
 
   ) {
@@ -214,7 +243,15 @@ export class EnqueteService {
       delete updateData.estabelecimentoIds;
     }
 
+    // E2.2: Tratamento especial para configPesquisa (campo Json? nullable no Prisma)
+    if (data.configPesquisa !== undefined) {
+      updateData.configPesquisa = data.configPesquisa != null
+        ? data.configPesquisa as Prisma.InputJsonValue
+        : Prisma.JsonNull;
+    }
+
     // Se estiver publicando agora, define a data de publicação
+
     if (data.status === "PUBLICADA") {
       updateData.publicadoEm = new Date();
     }

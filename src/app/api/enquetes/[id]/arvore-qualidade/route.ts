@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
         }
 
-        const perm = await checkPermission(session.user.id, session.user.organizationId, "premio:template", "read");
+        const perm = await checkPermission(session.user.id, session.user.organizationId, "participa:enquete", "read");
         if (!perm.allowed) {
             return NextResponse.json({ error: "Permissão insuficiente" }, { status: 403 });
         }
@@ -40,20 +40,24 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: "Enquete não encontrada" }, { status: 404 });
         }
 
-        // Parse using E3.2 resolver batch for UI
         const segmentsWithQualityTree = await Promise.all(enquete.segmentos.map(async (segmento) => {
             const resolved = await resolverTemplate(segmento.id, session.user.organizationId);
 
             return {
-                ...segmento,
+                id: segmento.id,
+                nome: segmento.nome,
+                paiId: segmento.paiId,
+                pai: segmento.pai ? { nome: segmento.pai.nome } : null,
+                templateQualidadeId: segmento.templateQualidadeId,
+                templateQualidade: segmento.templateQualidade
+                    ? { id: segmento.templateQualidade.id, nome: segmento.templateQualidade.nome }
+                    : null,
                 resolvedTemplate: resolved
+                    ? { id: resolved.id, nome: resolved.nome, herdadoDe: resolved.herdadoDe ?? null }
+                    : null,
             };
         }));
 
-        // Now we need to convert to tree if not already a tree. We'll send it flat with resolved values,
-        // and let Frontend construct the nested CSS view, or just format a tree structure here:
-
-        // Let's send a hierarchical map, but flat array is also fine if UI sorts by pareId
         return NextResponse.json(segmentsWithQualityTree);
 
     } catch (error: any) {

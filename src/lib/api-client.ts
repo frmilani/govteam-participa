@@ -60,6 +60,10 @@ async function wrapResponse<T = unknown>(response: Response): Promise<ApiRespons
           action: body?.details?.action,
           reason: body?.details?.reason || body?.error,
         })
+
+        // Suspend the current execution flow indefinitely.
+        // The global AccessDeniedModal will take over and redirect the user.
+        return new Promise(() => { }) as unknown as Promise<ApiResponse<T>>
       }
     } catch {
       // Not JSON — let it pass through as a regular 403

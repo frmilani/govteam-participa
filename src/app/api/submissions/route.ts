@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
           enqueteId: enquete.id,
           formPublicId: link.formPublicId,
           leadId: currentLeadId,
-          trackingLinkId: link.type === 'campaign' ? (link as any).id : undefined,
+          trackingLinkId: (link as any).id || undefined,
           dadosJson: dados,
           ipAddress: req.headers.get("x-forwarded-for") || "unknown",
           userAgent: req.headers.get("user-agent") || "unknown",
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
 
       // --- Demographics Enrichment (E5.1) ---
       if (currentLeadId) {
-        const demograficos = extractDemographicsParams(dados);
+        const demograficos = extractDemographicsParams(dados, allElements);
         const keys = Object.keys(demograficos);
 
         if (keys.length > 0) {

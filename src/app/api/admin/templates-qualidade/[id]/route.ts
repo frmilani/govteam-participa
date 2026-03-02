@@ -12,8 +12,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
         }
 
-        const perm = await checkPermission(session.user.id, session.user.organizationId, "premio:template", "read");
-        if (!perm.allowed) return hpacDeniedResponse("premio:template", "read");
+        const perm = await checkPermission(session.user.id, session.user.organizationId, "participa:template", "read");
+        if (!perm.allowed) return hpacDeniedResponse("participa:template", "read");
 
         const template = await getTemplateById(id, session.user.organizationId);
         if (!template) return NextResponse.json({ error: "Template não encontrado" }, { status: 404 });
@@ -30,8 +30,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         const session = (await auth()) as any;
         if (!session?.user?.organizationId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-        const perm = await checkPermission(session.user.id, session.user.organizationId, "premio:template", "update");
-        if (!perm.allowed) return hpacDeniedResponse("premio:template", "update");
+        const perm = await checkPermission(session.user.id, session.user.organizationId, "participa:template", "update");
+        if (!perm.allowed) return hpacDeniedResponse("participa:template", "update");
 
         const body = await req.json();
         const parsed = templateQualidadeSchema.parse(body);
@@ -49,8 +49,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         const session = (await auth()) as any;
         if (!session?.user?.organizationId) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-        const perm = await checkPermission(session.user.id, session.user.organizationId, "premio:template", "delete");
-        if (!perm.allowed) return hpacDeniedResponse("premio:template", "delete");
+        const perm = await checkPermission(session.user.id, session.user.organizationId, "participa:template", "delete");
+        if (!perm.allowed) return hpacDeniedResponse("participa:template", "delete");
 
         await deleteTemplate(id, session.user.organizationId);
         return new NextResponse(null, { status: 204 });

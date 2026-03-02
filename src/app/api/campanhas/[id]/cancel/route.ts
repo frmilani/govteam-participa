@@ -19,7 +19,7 @@ export async function POST(
         const perm = await checkPermission(
             session.user.id,
             orgId,
-            'premio:campanha',
+            'participa:campanha',
             'update'
         );
 

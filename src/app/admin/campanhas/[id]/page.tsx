@@ -132,7 +132,7 @@ export default function CampanhaDetailPage({ params }: PageProps) {
     ];
 
     const progress = campanha.totalLeads > 0
-        ? Math.round(((campanha.totalEnviados + campanha.totalFalhados) / campanha.totalLeads) * 100)
+        ? Math.min(100, Math.round(((campanha.totalEnviados + campanha.totalFalhados) / campanha.totalLeads) * 100))
         : 0;
 
     return (
@@ -297,6 +297,11 @@ export default function CampanhaDetailPage({ params }: PageProps) {
                                     <div>
                                         <div className="text-sm font-black text-foreground">{link.lead?.nome || 'Lead s/ Nome'}</div>
                                         <div className="text-[10px] font-bold text-muted-foreground">{link.lead?.whatsapp}</div>
+                                        {link.erroNoEnvio && (
+                                            <div className="text-[9px] font-medium text-destructive mt-1 bg-destructive/5 px-2 py-0.5 rounded-lg border border-destructive/10">
+                                                {link.erroNoEnvio}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className={cn(
@@ -304,9 +309,10 @@ export default function CampanhaDetailPage({ params }: PageProps) {
                                     link.status === 'RESPONDIDO' ? "bg-emerald-500/10 text-emerald-500" :
                                         link.status === 'ENVIADO' ? "bg-primary/10 text-primary" :
                                             link.status === 'VISUALIZADO' ? "bg-amber-500/10 text-amber-500" :
-                                                "bg-muted text-muted-foreground"
+                                                link.status === 'FALHADO' ? "bg-destructive/10 text-destructive" :
+                                                    "bg-muted text-muted-foreground"
                                 )}>
-                                    {link.status}
+                                    {link.status === 'FALHADO' ? 'FALHOU' : link.status}
                                 </div>
                             </div>
                         ))}

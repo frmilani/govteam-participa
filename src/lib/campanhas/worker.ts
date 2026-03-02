@@ -6,7 +6,22 @@ import { WhatsappService } from '../whatsapp/whatsapp-service';
 import { LinkStatus, CampanhaStatus } from '@prisma/client';
 
 export const setupCampanhaWorker = () => {
-    const worker = new Worker<any>( // Troquei para any para suportar múltiplos tipos de data
+    const checkCompletion = async (campanhaId: string) => {
+        const c = await prisma.campanha.findUnique({
+            where: { id: campanhaId },
+            select: { totalLeads: true, totalEnviados: true, totalFalhados: true, status: true }
+        });
+
+        if (c && c.status === CampanhaStatus.EM_ANDAMENTO && (c.totalEnviados + c.totalFalhados) >= c.totalLeads) {
+            console.log(`[Worker] Campanha ${campanhaId} concluída.`);
+            await prisma.campanha.update({
+                where: { id: campanhaId },
+                data: { status: CampanhaStatus.CONCLUIDA, finalizadoEm: new Date() }
+            });
+        }
+    };
+
+    const worker = new Worker<any>(
         CAMPANHA_QUEUE_NAME,
         async (job: Job<any>) => {
             // Caso 1: Disparador de Campanha (Agendamento)
@@ -25,7 +40,7 @@ export const setupCampanhaWorker = () => {
             }
 
             // Caso 2: Envio Individual de Mensagem (Batch de Mensagens para o mesmo Lead)
-            const { trackingLinkId, campanhaId, mensagens, strategy = 'DIRECT', initialMessage, stage = 'INITIAL' } = job.data as CampanhaJobData;
+            const { trackingLinkId, campanhaId, mensagens, strategy = 'DIRECT', initialMessage, stage = 'INITIAL', instanceId } = job.data as CampanhaJobData;
 
             console.log(`[Worker] Processando ${mensagens.length} mensagens para Campanha ${campanhaId}, Link ${trackingLinkId}, Estratégia: ${strategy}, Estágio: ${stage}`);
 
@@ -62,7 +77,8 @@ export const setupCampanhaWorker = () => {
                         options: [
                             `Sim|OPTIN_YES:${link.id}`,
                             `Não|OPTIN_NO:${link.id}`
-                        ]
+                        ],
+                        instanceId
                     });
 
                     // Atualizar status para algo que indique espera (poderíamos ter um status específico, mas ENVIADO funciona se considerarmos o envio do convite)
@@ -104,7 +120,8 @@ export const setupCampanhaWorker = () => {
                         await WhatsappService.sendMenu({
                             to: link.lead.whatsapp,
                             text: personalizedText,
-                            options: [`Não quero mais|BLOCK:${link.id}`]
+                            options: [`Não quero mais|BLOCK:${link.id}`],
+                            instanceId
                         });
                     } else {
                         // Fluxo Normal (DIRECT ou mensagens anteriores do SOFT_BLOCK)
@@ -113,7 +130,8 @@ export const setupCampanhaWorker = () => {
                             text: personalizedText,
                             mediaUrl: msgConfig.mediaUrl || undefined,
                             type: msgConfig.type || 'text',
-                            options: msgConfig.options
+                            options: msgConfig.options,
+                            instanceId
                         });
                     }
 
@@ -139,14 +157,10 @@ export const setupCampanhaWorker = () => {
                     data: { totalEnviados: { increment: 1 } }
                 });
 
+                await checkCompletion(campanhaId);
+
             } catch (error: any) {
                 console.error(`[Worker] Falha ao enviar sequência de mensagens para ${link.lead.whatsapp}:`, error.message);
-
-                await prisma.campanha.update({
-                    where: { id: campanhaId },
-                    data: { totalFalhados: { increment: 1 } }
-                });
-
                 throw error;
             }
         },
@@ -160,8 +174,32 @@ export const setupCampanhaWorker = () => {
         console.log(`[Worker] Job ${job.id} finalizado com sucesso.`);
     });
 
-    worker.on('failed', (job, err) => {
+    worker.on('failed', async (job, err) => {
         console.error(`[Worker] Job ${job?.id} falhou:`, err.message);
+
+        // Incrementar falha no banco apenas após todas as tentativas (ou em cada falha se preferir, 
+        // mas aqui estamos limpando o contador no início para progressão real)
+        const { campanhaId, trackingLinkId } = job?.data || {};
+        if (campanhaId) {
+            // 1. Incrementar falha na campanha
+            await prisma.campanha.update({
+                where: { id: campanhaId },
+                data: { totalFalhados: { increment: 1 } }
+            }).catch(e => console.error('Erro ao atualizar contador de falhas na campanha:', e));
+
+            // 2. Marcar Link como FALHADO e registrar o erro
+            if (trackingLinkId) {
+                await prisma.trackingLink.update({
+                    where: { id: trackingLinkId },
+                    data: {
+                        status: (LinkStatus as any).FALHADO,
+                        erroNoEnvio: err.message
+                    } as any
+                }).catch(e => console.error('Erro ao marcar link como falhado:', e));
+            }
+
+            await checkCompletion(campanhaId);
+        }
     });
 
     return worker;

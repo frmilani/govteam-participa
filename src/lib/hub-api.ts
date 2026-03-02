@@ -54,7 +54,8 @@ export class HubApiService {
     }
 
     try {
-      const response = await this.client.get('/api/public/v1/forms', {
+      // UPDATED: Forms are managed by Formbuilder spoke
+      const response = await axios.get(`${FORMBUILDER_URL}/api/public/v1/forms`, {
         headers: {
           'x-spoke-id': HUB_CLIENT_ID,
           'x-spoke-secret': HUB_CLIENT_SECRET,
@@ -70,8 +71,9 @@ export class HubApiService {
         storageMode: form.storageMode || form.settings?.storageMode || "HUB"
       }));
     } catch (error: any) {
-      console.error(`[HubApiService] Erro ao listar formulários:`, error.response?.data || error.message);
-      throw new Error("Falha ao buscar lista de formulários do Hub");
+      const errorDetail = error.response?.data || error.message;
+      console.error(`[HubApiService] Erro ao listar formulários:`, errorDetail);
+      throw new Error(`Falha ao buscar lista de formulários do Hub: ${typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail)}`);
     }
   }
 
@@ -161,8 +163,8 @@ export class HubApiService {
     }
 
     try {
-      const response = await this.client.get('/api/public/v1/spokes/config', {
-        params: { spokeType: 'participa' },
+      // UPDATED: Correct Hub internal path
+      const response = await this.client.get(`/api/internal/spokes/participa/config`, {
         headers: {
           'x-spoke-id': HUB_CLIENT_ID,
           'x-spoke-secret': HUB_CLIENT_SECRET,

@@ -87,13 +87,10 @@ export function AccessDeniedProvider({ children }: { children: React.ReactNode }
 
     const handleClose = useCallback(() => {
         setOpen(false)
-        // If it was a 'read' action that failed, or if it's the first load,
-        // redirecting to an empty page is safer so the user doesn't stay on a completely broken page.
-        // We avoid redirecting if on the blank page itself to avoid a loop.
-        if ((info.action === 'read' || !info.action) && pathname !== '/admin/blank') {
+        if (!pathname.includes('blank')) {
             router.push('/admin/blank')
         }
-    }, [router, info, pathname])
+    }, [router, pathname])
 
     return (
         <AccessDeniedContext.Provider value={{ showAccessDenied }}>

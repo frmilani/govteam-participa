@@ -39,7 +39,6 @@ export const ResearchTab: React.FC = () => {
 
     React.useEffect(() => {
         if (!showMaxCategorias) {
-            setValue("minCategoriasPorEleitor", undefined, { shouldDirty: true, shouldValidate: true });
             setValue("maxCategoriasPorEleitor", undefined, { shouldDirty: true, shouldValidate: true });
         }
     }, [showMaxCategorias, setValue]);
@@ -196,15 +195,17 @@ export const ResearchTab: React.FC = () => {
                 </label>
 
                 {incluirQualidade && (
-                    <div className="ml-8 mt-2 p-3 border-l-2 border-primary/30 pl-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <p className="text-[11px] text-muted-foreground pb-2">
-                            Configurações avançadas de templates de qualidade e pesos estarão disponíveis na próxima fase de desenvolvimento.
-                        </p>
+                    <div className="ml-0 mt-2 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="p-3 border-l-4 border-primary/40 pl-4 bg-card/50 rounded-r-lg">
+                            <p className="text-[11px] text-muted-foreground">
+                                <strong className="text-foreground">Cobertura de Templates:</strong> verifique se todas as categorias desta enquete possuem perguntas de qualidade configuradas antes de publicar.
+                            </p>
+                        </div>
                         {enqueteId ? (
                             <QualidadeInheritanceView enqueteId={enqueteId} />
                         ) : (
-                            <p className="text-sm text-muted-foreground italic mt-2">
-                                Salve a enquete primeiro para configurar a árvore de qualidade.
+                            <p className="text-sm text-muted-foreground italic px-1">
+                                Salve a enquete primeiro para visualizar o diagnóstico de qualidade.
                             </p>
                         )}
                     </div>

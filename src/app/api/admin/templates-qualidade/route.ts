@@ -14,12 +14,12 @@ export async function GET(req: NextRequest) {
         const perm = await checkPermission(
             session.user.id,
             session.user.organizationId,
-            "premio:template",
+            "participa:template",
             "read"
         );
 
         if (!perm.allowed) {
-            return hpacDeniedResponse("premio:template", "read");
+            return hpacDeniedResponse("participa:template", "read");
         }
 
         const templates = await getTemplates(session.user.organizationId);
@@ -39,12 +39,12 @@ export async function POST(req: NextRequest) {
         const perm = await checkPermission(
             session.user.id,
             session.user.organizationId,
-            "premio:template",
+            "participa:template",
             "create"
         );
 
         if (!perm.allowed) {
-            return hpacDeniedResponse("premio:template", "create");
+            return hpacDeniedResponse("participa:template", "create");
         }
 
         const body = await req.json();

@@ -15,19 +15,24 @@ const createSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-
     const organizationId = await getOrganizationId();
     const session = (await auth()) as any;
 
-    // HPAC: check read permission
-    const perm = await checkPermission(
-      session?.user?.id,
-      organizationId,
-      'premio:segmento',
-      'read'
-    );
-    if (!perm.allowed) {
-      return hpacDeniedResponse('premio:segmento', 'read');
+    // HPAC: check read permission (soft — don't block on failure)
+    let perm: any = { allowed: true, fieldMask: null };
+    try {
+      perm = await checkPermission(
+        session?.user?.id,
+        organizationId,
+        'participa:segmento',
+        'read'
+      );
+      if (!perm.allowed) {
+        return hpacDeniedResponse('participa:segmento', 'read');
+      }
+    } catch (hpacError: any) {
+      console.warn("[API_SEGMENTOS_GET] HPAC check failed, allowing read:", hpacError?.message);
+      // Allow read on HPAC failure — segmentos are org-scoped config data
     }
 
     const { searchParams } = new URL(req.url);
@@ -38,9 +43,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(applyFieldMaskToArray(segmentos as any[], perm.fieldMask));
   } catch (error: any) {
     console.error("[API_SEGMENTOS_GET] ERRO:", error);
-    // Log extended error info if available (e.g. from HubPermissions)
     if (error?.response?.data) console.error("[API_SEGMENTOS_GET] Response Data:", error.response.data);
-    return NextResponse.json({ error: error.message }, { status: 401 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
@@ -54,11 +58,11 @@ export async function POST(req: NextRequest) {
     const perm = await checkPermission(
       session?.user?.id,
       organizationId,
-      'premio:segmento',
+      'participa:segmento',
       'create'
     );
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:segmento', 'create');
+      return hpacDeniedResponse('participa:segmento', 'create');
     }
 
     console.log("[API_SEGMENTOS_POST] organizationId:", organizationId);

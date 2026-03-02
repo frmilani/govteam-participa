@@ -6,7 +6,9 @@ import { useVoteTemplateOptional } from './VoteTemplateContext';
 import { TemplateConfig } from '@/lib/vote-templates';
 
 // Votable field types from Hub's ElementType
+// Includes research engine injected types: text (top-of-mind), rating (rating-5), nps (rating-10)
 const VOTABLE_TYPES = [
+    'text',
     'select',
     'radio-group',
     'checkbox-group',
@@ -15,7 +17,9 @@ const VOTABLE_TYPES = [
     'radio-blocks',
     'radio-tabs',
     'checkbox-blocks',
-    'checkbox-tabs'
+    'checkbox-tabs',
+    'rating',
+    'nps',
 ];
 
 interface ProgressBarProps {

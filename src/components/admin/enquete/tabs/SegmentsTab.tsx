@@ -20,22 +20,18 @@ export const SegmentsTab: React.FC<SegmentsTabProps> = ({ allSegmentos }) => {
     const { watch, setValue } = useFormContext<EnqueteFormData>();
     const selectedSegmentoIds = watch("segmentoIds") || [];
 
-    // Flatten logic: recursively get all segments that have establishments
+    // Flatten all segments recursively, showing all (even those without establishments yet)
     const flattenSegments = React.useCallback((segments: SegmentoWithChildren[], parentName: string = ""): { id: string; label: string }[] => {
         let result: { id: string; label: string }[] = [];
 
         segments.forEach(seg => {
-            const hasDirectEstabs = (seg._count?.estabelecimentos ?? 0) > 0;
             const fullName = parentName ? `${parentName} > ${seg.nome}` : seg.nome;
 
-            // Only add to the list if it has direct establishments
-            // This prevents selecting a "container" parent that yields 0 companies
-            if (hasDirectEstabs) {
-                result.push({ id: seg.id, label: fullName });
-            }
+            // Always include the segment (even without establishments yet)
+            result.push({ id: seg.id, label: fullName });
 
             if (seg.filhos && seg.filhos.length > 0) {
-                result = [...result, ...flattenSegments(seg.filhos, seg.nome)]; // Use simple parent name for cleaner hierarchy if needed, or fullName for full path
+                result = [...result, ...flattenSegments(seg.filhos, seg.nome)];
             }
         });
 

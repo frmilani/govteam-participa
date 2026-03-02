@@ -58,6 +58,49 @@ const SidebarItem = ({ href, icon: Icon, label, isCollapsed }: SidebarItemProps)
   );
 };
 
+interface ModuleHeaderProps {
+  giantLetter: string;
+  restOfWord: string;
+  colorClass: string;
+  isCollapsed: boolean;
+}
+
+const ModuleHeader = ({ giantLetter, restOfWord, colorClass, isCollapsed }: ModuleHeaderProps) => {
+  // ESTADO 1: MENU COLAPSADO (Mostra apenas a letra ícone centralizada/alinhada)
+  if (isCollapsed) {
+    return (
+      <div className="flex items-center justify-center mb-8 px-2 pt-6">
+        <div className="relative flex-shrink-0 flex items-center justify-center">
+          <span className={cn("font-black text-4xl leading-none tracking-tighter transition-all duration-300", colorClass)}>
+            {giantLetter}
+          </span>
+          {/* Acento da Marca (Ponto Verde) */}
+          <div className="absolute -top-1 -right-2 w-2.5 h-2.5 bg-emerald-500 rounded-[2px] shadow-sm animate-in fade-in zoom-in duration-500"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // ESTADO 2: MENU EXPANDIDO (Drop Cap unida ao resto da palavra)
+  return (
+    <div className="flex items-baseline justify-start mb-8 px-6 pt-6">
+      {/* Container da Letra Gigante (Drop Cap) */}
+      <div className="relative flex-shrink-0 flex items-center justify-center">
+        <span className={cn("font-black text-4xl leading-none tracking-tighter transition-all duration-300", colorClass)}>
+          {giantLetter}
+        </span>
+        {/* Acento da Marca (Ponto Verde) flutuando no canto superior direito da letra */}
+        <div className="absolute -top-1 -right-2 w-2.5 h-2.5 bg-emerald-500 rounded-[2px] shadow-sm animate-in fade-in zoom-in duration-500"></div>
+      </div>
+
+      {/* Resto do Nome do Módulo */}
+      <span className="font-black text-2xl tracking-tight text-gray-800 dark:text-gray-100 ml-[2px] truncate transition-all duration-300">
+        {restOfWord}
+      </span>
+    </div>
+  );
+};
+
 export function Sidebar() {
   const { isCollapsed, toggleSidebar } = useSidebar();
   const { data: session } = useSession();
@@ -75,19 +118,15 @@ export function Sidebar() {
         {isCollapsed ? <ChevronRight size={10} /> : <ChevronLeft size={10} />}
       </button>
 
-      {/* Logo */}
-      <div className={cn("p-6 mb-2", isCollapsed ? "flex justify-center" : "")}>
-        <Link href="/admin" className="flex items-center gap-3 group">
-          <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black shadow-sm group-hover:scale-105 transition-transform">
-            P
-          </div>
-          {!isCollapsed && (
-            <span className="text-xl font-black text-foreground tracking-tight">
-              Participa<span className="text-primary"></span>
-            </span>
-          )}
-        </Link>
-      </div>
+      {/* Logo Section em Estilo Drop Cap */}
+      <Link href="/admin" className="block group">
+        <ModuleHeader
+          giantLetter="P"
+          restOfWord="articipa"
+          colorClass="text-primary"
+          isCollapsed={isCollapsed}
+        />
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 px-4 space-y-1">
@@ -101,6 +140,29 @@ export function Sidebar() {
         <SidebarItem href="/admin/whatsapp" icon={Smartphone} label="WhatsApp" isCollapsed={isCollapsed} />
         <SidebarItem href="/admin/theme" icon={Palette} label="Temas" isCollapsed={isCollapsed} />
       </nav>
+
+      {/* Brand Logo Section */}
+      <div className={cn(
+        "py-4 mt-auto flex justify-center items-center transition-all duration-300 group/brand cursor-default",
+        isCollapsed ? "px-2" : "px-8"
+      )}>
+        <img
+          src="/logo-branco.png"
+          alt="GovTeam Logo"
+          className={cn(
+            "w-auto dark:block hidden transition-all duration-500 transform group-hover/brand:scale-110 group-hover/brand:brightness-125 filter drop-shadow-sm group-hover/brand:drop-shadow-md",
+            isCollapsed ? "max-h-8" : "max-h-20"
+          )}
+        />
+        <img
+          src="/logo-branco2.png"
+          alt="GovTeam Logo"
+          className={cn(
+            "w-auto dark:hidden block transition-all duration-500 transform group-hover/brand:scale-110 group-hover/brand:brightness-110 filter drop-shadow-sm group-hover/brand:drop-shadow-md",
+            isCollapsed ? "max-h-8" : "max-h-20"
+          )}
+        />
+      </div>
 
       {/* User Footer */}
       <div className="p-4 mt-auto border-t border-border/50">

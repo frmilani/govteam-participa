@@ -306,6 +306,7 @@ model TrackingLink {
   status        LinkStatus @default(NAO_ENVIADO)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+  erroNoEnvio   String?
   resposta      Resposta?
   campanha      Campanha   @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
   lead          Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
@@ -441,6 +442,7 @@ enum LinkStatus {
   VISUALIZADO
   RESPONDIDO
   EXPIRADO
+  FALHADO
 }
 
 enum RespostaStatus {

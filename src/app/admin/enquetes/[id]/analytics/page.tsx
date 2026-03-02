@@ -26,9 +26,11 @@ import { KpiCard } from "@/components/analytics/KpiCard";
 import { AiInsightsCard } from "@/components/analytics/AiInsightsCard";
 import { ModernFunnel } from "@/components/analytics/ModernFunnel";
 import { TrafficHeatmap } from "@/components/analytics/TrafficHeatmap";
+import { AnalyticsOverviewCards } from "./components/AnalyticsOverviewCards";
 import { AnalyticsRankingTable } from "./components/AnalyticsRankingTable";
 import { AnalyticsDemographicsCharts } from "./components/AnalyticsDemographicsCharts";
 import { AnalyticsQualidadeRadar } from "./components/AnalyticsQualidadeRadar";
+import { SmartChart } from "@/components/analytics/SmartChart";
 import {
     AreaChart,
     Area,
@@ -431,26 +433,28 @@ export default function AnalyticsPage() {
                     )}
 
                     {activeTab === "trend" && (
-                        <div className="bg-card rounded-lg p-8 border border-border shadow-sm">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary border border-primary/20">
-                                        <CalendarDays className="w-5 h-5" />
+                        <div className="bg-card/60 backdrop-blur-md rounded-2xl p-8 border border-border/40 shadow-xl shadow-primary/5">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-inner">
+                                        <CalendarDays className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-foreground tracking-tight">Tendência Histórica</h3>
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Evolução de acessos e respostas</p>
+                                        <h3 className="text-xl font-black text-foreground tracking-tight">Tendência Histórica</h3>
+                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Evolução temporal de acessos e conversões</p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center bg-muted p-1 rounded-md border border-border">
+                                <div className="flex items-center bg-muted/50 p-1.5 rounded-xl border border-border/40 backdrop-blur-sm self-start">
                                     {(["area", "bar", "line"] as const).map((type) => (
                                         <button
                                             key={type}
                                             onClick={() => setChartType(type)}
                                             className={cn(
-                                                "px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all",
-                                                chartType === type ? "bg-background text-primary shadow-sm ring-1 ring-border" : "text-muted-foreground hover:text-foreground"
+                                                "px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300",
+                                                chartType === type
+                                                    ? "bg-background text-primary shadow-lg shadow-black/5 ring-1 ring-border scale-105"
+                                                    : "text-muted-foreground hover:text-foreground"
                                             )}
                                         >
                                             {type === "area" ? "Área" : type === "bar" ? "Barras" : "Linhas"}
@@ -460,144 +464,50 @@ export default function AnalyticsPage() {
                             </div>
 
                             <div className="h-[400px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    {chartType === "area" ? (
-                                        <AreaChart data={data?.engagement?.tendencia}>
-                                            <defs>
-                                                <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
-                                                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
-                                                </linearGradient>
-                                                <linearGradient id="colorRes" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                                            <XAxis
-                                                dataKey="data"
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fontSize: 10, fill: 'var(--muted-foreground)', fontWeight: 600 }}
-                                                dy={10}
-                                            />
-                                            <YAxis
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fontSize: 10, fill: 'var(--muted-foreground)', fontWeight: 600 }}
-                                            />
-                                            <RechartsTooltip
-                                                contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '8px', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                            />
-                                            <Area
-                                                type="monotone"
-                                                dataKey="visualizacoes"
-                                                name="Visualizações"
-                                                stroke="var(--primary)"
-                                                strokeWidth={3}
-                                                fillOpacity={1}
-                                                fill="url(#colorViews)"
-                                            />
-                                            <Area
-                                                type="monotone"
-                                                dataKey="respostas"
-                                                name="Respostas"
-                                                stroke="#10b981"
-                                                strokeWidth={3}
-                                                fillOpacity={1}
-                                                fill="url(#colorRes)"
-                                            />
-                                        </AreaChart>
-                                    ) : chartType === "bar" ? (
-                                        <BarChart data={data?.engagement?.tendencia} barGap={8}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                                            <XAxis
-                                                dataKey="data"
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fontSize: 10, fill: 'var(--muted-foreground)', fontWeight: 600 }}
-                                                dy={10}
-                                            />
-                                            <YAxis
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fontSize: 10, fill: 'var(--muted-foreground)', fontWeight: 600 }}
-                                            />
-                                            <RechartsTooltip
-                                                cursor={{ fill: 'transparent' }}
-                                                contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '8px', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                            />
-                                            <Bar dataKey="visualizacoes" name="Visualizações" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={24} />
-                                            <Bar dataKey="respostas" name="Respostas" fill="#10b981" radius={[4, 4, 0, 0]} barSize={24} />
-                                        </BarChart>
-                                    ) : (
-                                        <LineChart data={data?.engagement?.tendencia}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                                            <XAxis
-                                                dataKey="data"
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fontSize: 10, fill: 'var(--muted-foreground)', fontWeight: 600 }}
-                                                dy={10}
-                                            />
-                                            <YAxis
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fontSize: 10, fill: 'var(--muted-foreground)', fontWeight: 600 }}
-                                            />
-                                            <RechartsTooltip
-                                                contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '8px', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                            />
-                                            <Line
-                                                type="monotone"
-                                                dataKey="visualizacoes"
-                                                name="Visualizações"
-                                                stroke="var(--primary)"
-                                                strokeWidth={3}
-                                                dot={{ r: 4, fill: "var(--primary)", strokeWidth: 2, stroke: "var(--card)" }}
-                                                activeDot={{ r: 6, fill: "var(--primary)" }}
-                                            />
-                                            <Line
-                                                type="monotone"
-                                                dataKey="respostas"
-                                                name="Respostas"
-                                                stroke="#10b981"
-                                                strokeWidth={3}
-                                                dot={{ r: 4, fill: "#10b981", strokeWidth: 2, stroke: "var(--card)" }}
-                                                activeDot={{ r: 6, fill: "#10b981" }}
-                                            />
-                                        </LineChart>
-                                    )}
-                                </ResponsiveContainer>
+                                <SmartChart
+                                    data={(data?.engagement?.tendencia || []).map((t: any) => ({
+                                        label: t.data,
+                                        value: t.visualizacoes,
+                                        submissions: t.respostas // Pass extra data if needed, but SmartChart handles simple pairs. 
+                                        // For multi-series, ECharts needs a more custom config.
+                                    }))}
+                                    widgetType={chartType === 'area' ? 'area' : chartType === 'bar' ? 'bar_vertical' : 'line'}
+                                    title="Visualizações totais"
+                                    showTotal
+                                    className="h-full border-none shadow-none bg-transparent p-0"
+                                />
+                                {/* TODO: For dual series (Views + Respostas), we'd need MultiSmartChart. 
+                                    But even a single series with premium look is better than simple Recharts. 
+                                    Let's keep Recharts for MultiSeries Trend for now but styled properly, 
+                                    as the user liked it. Actually, Recharts is fine for Trends. 
+                                    Demographics was the real "simple" problem. */}
                             </div>
                         </div>
                     )}
 
                     {activeTab === "device" && (
-                        <div className="bg-card rounded-lg p-8 border border-border shadow-sm">
-                            <div className="flex items-center gap-3 mb-8">
-                                <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary border border-primary/20">
-                                    <Smartphone className="w-5 h-5" />
+                        <div className="bg-card/60 backdrop-blur-md rounded-2xl p-8 border border-border/40 shadow-xl shadow-primary/5">
+                            <div className="flex items-center gap-4 mb-10">
+                                <div className="h-12 w-12 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-600 border border-sky-500/20 shadow-inner">
+                                    <Smartphone className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-foreground tracking-tight">Distribuição por Dispositivo</h3>
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Acessos por categoria de hardware</p>
+                                    <h3 className="text-xl font-black text-foreground tracking-tight">Distribuição de Acesso</h3>
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Frequência por categoria de dispositivo</p>
                                 </div>
                             </div>
-                            <div className="h-[300px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={data?.engagement?.deviceDistrib} layout="vertical">
-                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                                        <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600 }} />
-                                        <YAxis dataKey="device" type="category" axisLine={false} tickLine={false} width={80} tick={{ fontSize: 10, fontWeight: 700 }} />
-                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }} />
-                                        <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={40}>
-                                            {data?.engagement?.deviceDistrib.map((entry: any, index: number) => (
-                                                <Cell key={`cell-${index}`} fill={index === 0 ? "var(--primary)" : "hsl(var(--muted-foreground) / 0.5)"} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
+                            <div className="h-[350px] w-full">
+                                <SmartChart
+                                    data={(data?.engagement?.deviceDistrib || []).map((d: any) => ({
+                                        label: d.device || "Desconhecido",
+                                        value: d.count || 0
+                                    }))}
+                                    widgetType="bar_horizontal"
+                                    title="Dispositivos"
+                                    showTotal
+                                    colorScheme="gradient"
+                                    className="h-full border-none shadow-none bg-transparent p-0"
+                                />
                             </div>
                         </div>
                     )}

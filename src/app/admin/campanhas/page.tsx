@@ -240,12 +240,12 @@ export default function CampanhasPage() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                         <span>Progresso do Envio</span>
-                        <span>{Math.round((campanha.totalEnviados / campanha._count.trackingLinks) * 100)}%</span>
+                        <span>{Math.min(100, Math.round(((campanha.totalEnviados + campanha.totalFalhados) / (campanha.totalLeads || campanha._count.trackingLinks || 1)) * 100))}%</span>
                       </div>
                       <div className="w-full bg-muted h-2 rounded-full overflow-hidden border border-border/50">
                         <div
                           className="bg-primary h-full transition-all duration-500 shadow-sm"
-                          style={{ width: `${(campanha.totalEnviados / campanha._count.trackingLinks) * 100}%` }}
+                          style={{ width: `${Math.min(100, Math.round(((campanha.totalEnviados + campanha.totalFalhados) / (campanha.totalLeads || campanha._count.trackingLinks || 1)) * 100))}%` }}
                         />
                       </div>
                     </div>
@@ -275,10 +275,19 @@ export default function CampanhasPage() {
                     <Button
                       variant="outline"
                       disabled
-                      className="flex-1 h-9 font-bold text-[10px] uppercase tracking-wider gap-2 opacity-50"
+                      className="flex-1 h-9 font-bold text-[10px] uppercase tracking-wider gap-2 opacity-30 cursor-not-allowed"
                     >
-                      <Check size={14} />
-                      Concluída
+                      {campanha.status === 'CONCLUIDA' ? (
+                        <>
+                          <Check size={14} className="text-emerald-500" />
+                          Concluída
+                        </>
+                      ) : (
+                        <>
+                          <Loader2 size={14} className="animate-spin text-primary" />
+                          Em Andamento
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>

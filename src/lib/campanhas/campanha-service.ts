@@ -231,17 +231,37 @@ export class CampanhaService {
    * Inicia o processamento de uma campanha (Adiciona na fila BullMQ)
    */
   static async iniciarCampanha(campanhaId: string, organizationId: string) {
+    console.log(`[CampanhaService] Iniciando ativação da campanha: ${campanhaId}`);
+
     // 1. Validar limites no Hub
-    const config = await HubApiService.getSpokeConfig(organizationId);
-    if (!config.isActive) throw new Error("Assinatura inativa no Hub.");
+    try {
+      const config = await HubApiService.getSpokeConfig(organizationId);
+      console.log(`[CampanhaService] Config Hub para ${organizationId}:`, config);
+      if (!config.isActive && process.env.NODE_ENV !== 'development') {
+        throw new Error("Assinatura inativa no Hub.");
+      }
+    } catch (e: any) {
+      console.warn(`[CampanhaService] Falha ao validar limites no Hub: ${e.message}. Continuando em dev.`);
+      if (process.env.NODE_ENV !== 'development') throw e;
+    }
 
     const campanha = await prisma.campanha.findUnique({
       where: { id: campanhaId, organizationId },
-      include: { trackingLinks: { where: { status: LinkStatus.NAO_ENVIADO } } }
+      include: {
+        trackingLinks: { where: { status: LinkStatus.NAO_ENVIADO }, include: { lead: true } },
+        instances: { include: { instance: true } }
+      }
     }) as any;
 
-    if (!campanha || (campanha.status !== CampanhaStatus.RASCUNHO && campanha.status !== CampanhaStatus.AGENDADA)) {
-      throw new Error("Campanha não disponível para início (deve ser Rascunho ou Agendada)");
+    const totalLeadsCount = await prisma.trackingLink.count({ where: { campanhaId } });
+    const pendingLeadsCount = campanha.trackingLinks?.length || 0;
+
+    if (!campanha || (
+      campanha.status !== CampanhaStatus.RASCUNHO &&
+      campanha.status !== CampanhaStatus.AGENDADA &&
+      campanha.status !== CampanhaStatus.PAUSADA
+    )) {
+      throw new Error("Campanha não disponível para início ou retomada (deve ser Rascunho, Agendada ou Pausada)");
     }
 
     // 2. Extrair templates com pesos e Estratégia
@@ -273,17 +293,18 @@ export class CampanhaService {
 
     // 3. Adicionar links na fila BullMQ com distribuição baseada em peso e delay progressivo
     let currentDelay = 0;
-    const totalWeight = templateVariations.reduce((sum, t) => sum + (t.weight || 0), 0);
+    const totalTemplatesWeight = templateVariations.reduce((sum, t) => sum + (t.weight || 0), 0);
+    const totalInstancesWeight = (campanha.instances || []).reduce((sum: number, i: any) => sum + (i.weight || 0), 0);
 
     const jobs: any[] = campanha.trackingLinks.map((link: any) => {
       const randomInterval = Math.floor(Math.random() * (campanha.intervaloMax - campanha.intervaloMin + 1)) + campanha.intervaloMin;
       const jobDelay = currentDelay;
       currentDelay += randomInterval * 1000;
 
-      // Seleção Amostral por Peso (Weighted Random Selection)
+      // Seleção Amostral por Peso para TEMPLATES
       let messagesForThisLead: any[] = [];
       if (templateVariations.length > 0) {
-        let random = Math.random() * totalWeight;
+        let random = Math.random() * totalTemplatesWeight;
         for (const variation of templateVariations) {
           if (random < variation.weight) {
             messagesForThisLead = variation.messages;
@@ -295,6 +316,21 @@ export class CampanhaService {
         if (messagesForThisLead.length === 0) messagesForThisLead = templateVariations[0].messages;
       }
 
+      // Seleção Amostral por Peso para INSTÂNCIAS (Balanceamento de Carga)
+      let selectedInstanceId = undefined;
+      if (campanha.instances && campanha.instances.length > 0) {
+        let randomInstance = Math.random() * totalInstancesWeight;
+        for (const ci of campanha.instances) {
+          if (randomInstance < ci.weight) {
+            selectedInstanceId = ci.instance.instanceId;
+            break;
+          }
+          randomInstance -= ci.weight;
+        }
+        // Fallback
+        if (!selectedInstanceId) selectedInstanceId = campanha.instances[0].instance.instanceId;
+      }
+
       return {
         name: `send-${link.id}`,
         data: {
@@ -302,25 +338,45 @@ export class CampanhaService {
           campanhaId: campanha.id,
           mensagens: messagesForThisLead,
           organizationId,
+          instanceId: selectedInstanceId,
           strategy,
           initialMessage
         } as CampanhaJobData,
         opts: {
-          delay: jobDelay
+          delay: jobDelay,
+          jobId: link.id // Evita duplicados na fila
         }
       };
     });
 
+    console.log(`[CampanhaService] Enfileirando ${jobs.length} disparos no BullMQ...`);
     await campanhaQueue.addBulk(jobs);
+    console.log(`[CampanhaService] Jobs adicionados com sucesso.`);
 
-    // 3. Atualizar status da campanha
-    return await prisma.campanha.update({
+    // 3. Atualizar status e contadores da campanha
+    const c = await prisma.campanha.update({
       where: { id: campanhaId },
       data: {
         status: CampanhaStatus.EM_ANDAMENTO,
-        iniciadoEm: new Date()
+        iniciadoEm: campanha.iniciadoEm || new Date(),
+        totalLeads: totalLeadsCount,
+        // Só resetamos se estiver realmente saindo do rascunho (reiniciando do zero)
+        ...(campanha.status === CampanhaStatus.RASCUNHO || campanha.status === CampanhaStatus.AGENDADA ? {
+          totalEnviados: 0,
+          totalFalhados: 0
+        } : {})
       }
     });
+
+    // 4. Verificação extra: Se já processou tudo, conclui agora mesmo
+    if ((c.totalEnviados + c.totalFalhados) >= totalLeadsCount && totalLeadsCount > 0) {
+      return await prisma.campanha.update({
+        where: { id: campanhaId },
+        data: { status: CampanhaStatus.CONCLUIDA, finalizadoEm: new Date() }
+      });
+    }
+
+    return c;
   }
 
   /**

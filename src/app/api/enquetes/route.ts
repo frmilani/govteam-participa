@@ -48,12 +48,12 @@ export async function GET(req: NextRequest) {
     const perm = await checkPermission(
       session.user.id,
       session.user.organizationId,
-      'premio:enquete',
+      'participa:enquete',
       'read'
     );
 
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:enquete', 'read');
+      return hpacDeniedResponse('participa:enquete', 'read');
     }
 
     const { searchParams } = new URL(req.url);
@@ -62,7 +62,6 @@ export async function GET(req: NextRequest) {
       search: searchParams.get("search") || undefined,
       unitScope: narrowUnitScope(perm.unitScope, getActiveUnitFromRequest(req)),
     };
-
     const enquetes = await EnqueteService.getEnquetes(session.user.organizationId, filters);
 
     // HPAC: apply field mask if present
@@ -105,12 +104,12 @@ export async function POST(req: NextRequest) {
     const perm = await checkPermission(
       userId,
       session.user.organizationId,
-      'premio:enquete',
+      'participa:enquete',
       'create'
     );
 
     if (!perm.allowed) {
-      return hpacDeniedResponse('premio:enquete', 'create');
+      return hpacDeniedResponse('participa:enquete', 'create');
     }
 
     const enquete = await EnqueteService.createEnquete(
