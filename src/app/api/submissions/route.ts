@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
     }
 
     if (link.status === LinkStatus.RESPONDIDO) {
-      return NextResponse.json({ error: "Este link já foi utilizado para votar" }, { status: 400 });
+      // Retornar 409 para que o front-end mostre a tela de agradecimento em vez de erro genérico
+      return NextResponse.json({ error: "Este link já foi utilizado para votar" }, { status: 409 });
     }
 
     const enquete = link.campanha.enquete;
@@ -95,9 +96,21 @@ export async function POST(req: NextRequest) {
       });
 
       if (existingVote) {
+        // Corrigir o TrackingLink para RESPONDIDO caso tenha ficado desatualizado
+        const linkId = (link as any).id;
+        if (linkId) {
+          await prisma.trackingLink.update({
+            where: { id: linkId },
+            data: {
+              status: LinkStatus.RESPONDIDO,
+              respondidoEm: (existingVote as any).criadoEm || new Date(),
+            }
+          }).catch(() => { /* silencioso — não bloquear a resposta por isso */ });
+        }
+        // Retornar 409 (Conflict) — o front-end já trata 409 como "já votou" e mostra tela de agradecimento
         return NextResponse.json({
           error: "Você já participou desta votação. Agradecemos sua colaboração!"
-        }, { status: 400 });
+        }, { status: 409 });
       }
 
       // 3. Requirement: High Security (OTP)

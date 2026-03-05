@@ -22,7 +22,13 @@ export async function GET(
       return NextResponse.json({ error: "Este link de votação expirou" }, { status: 410 });
     }
 
-    // Registra a visualização
+    // Se o link já foi respondido, retorna imediatamente sem registrar visualização
+    // O client (page.tsx) irá detectar status='RESPONDIDO' e mostrar a tela de agradecimento
+    if (link.status === 'RESPONDIDO') {
+      return NextResponse.json(link);
+    }
+
+    // Registra a visualização apenas para links ainda não respondidos
     await TrackingLinkService.trackView(hash);
 
     return NextResponse.json(link);

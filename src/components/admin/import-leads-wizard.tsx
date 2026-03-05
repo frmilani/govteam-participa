@@ -4,20 +4,20 @@ import React, { useState, useRef } from 'react';
 import Papa from 'papaparse';
 import { FullScreenForm } from '@/components/ui/FullScreenForm';
 import { Button } from '@/components/ui/Button';
-import { 
-  FileUp, 
-  Table, 
-  AlertCircle, 
-  CheckCircle2, 
-  X, 
-  ChevronRight, 
+import {
+  FileUp,
+  Table,
+  AlertCircle,
+  CheckCircle2,
+  X,
+  ChevronRight,
   ChevronLeft,
   Upload,
   Database
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTags } from '@/hooks/use-tags';
-import { useCreateLead } from '@/hooks/use-leads';
+import { useImportLeads } from '@/hooks/use-leads';
 
 interface ImportWizardProps {
   isOpen: boolean;
@@ -32,10 +32,10 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
   const [headers, setHeaders] = useState<string[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [importResults, setResult] = useState<{ created: number; errors: string[] } | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: tags = [] } = useTags();
-  const createLeadMutation = useCreateLead();
+  const importLeadsMutation = useImportLeads();
 
   const requiredFields = ['nome', 'whatsapp'];
   const optionalFields = ['email', 'sexo', 'telefone', 'instagram', 'facebook', 'tags'];
@@ -54,7 +54,7 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
           const firstRow = data[0];
           const headerKeys = Object.keys(firstRow);
           setHeaders(headerKeys);
-          
+
           // Auto-mapping
           const newMapping: Record<string, string> = {};
           headerKeys.forEach(header => {
@@ -80,42 +80,41 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
 
   const handleImport = async () => {
     try {
-      let created = 0;
-      const errors: string[] = [];
+      const leadsToImport = [];
 
       for (const row of csvData) {
-        try {
-          const nome = row[mapping.nome];
-          const whatsapp = row[mapping.whatsapp];
-          
-          if (!nome || !whatsapp) continue;
+        const nome = row[mapping.nome];
+        const whatsapp = row[mapping.whatsapp];
 
-          // Process tags
-          const tagsRaw = String(row[mapping.tags] || "");
-          const tagNames = tagsRaw.split(',').map(t => t.trim().toLowerCase());
-          const tagIds = tagNames.map(name => {
-            const found = tags.find(t => t.nome.toLowerCase() === name || t.id === name);
-            return found?.id;
-          }).filter(Boolean) as string[];
+        if (!nome || !whatsapp) continue;
 
-          await createLeadMutation.mutateAsync({
-            nome,
-            whatsapp,
-            email: row[mapping.email] || null,
-            sexo: row[mapping.sexo] || null,
-            telefone: row[mapping.telefone] || null,
-            instagram: row[mapping.instagram] || null,
-            facebook: row[mapping.facebook] || null,
-            tagIds,
-            origem: 'IMPORTACAO'
-          });
-          created++;
-        } catch (error: any) {
-          errors.push(`${row[mapping.nome] || 'Desconhecido'}: ${error.message}`);
-        }
+        // Process tags
+        const tagsRaw = String(row[mapping.tags] || "");
+        const tagNames = tagsRaw.split(',').map(t => t.trim().toLowerCase());
+        const tagIds = tagNames.map(name => {
+          const found = tags.find(t => t.nome.toLowerCase() === name || t.id === name);
+          return found?.id;
+        }).filter(Boolean) as string[];
+
+        leadsToImport.push({
+          nome,
+          whatsapp,
+          email: row[mapping.email] || null,
+          sexo: row[mapping.sexo] || null,
+          telefone: row[mapping.telefone] || null,
+          instagram: row[mapping.instagram] || null,
+          facebook: row[mapping.facebook] || null,
+          tagIds,
+        });
       }
 
-      setResult({ created, errors });
+      if (leadsToImport.length > 0) {
+        const results = await importLeadsMutation.mutateAsync(leadsToImport);
+        setResult(results);
+      } else {
+        setResult({ created: 0, errors: ["Nenhum lead válido encontrado no arquivo."] });
+      }
+
       setStep('result');
     } catch (error) {
       console.error(error);
@@ -141,11 +140,17 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
               <FileUp size={40} />
             </div>
             <h4 className="text-lg font-black text-foreground uppercase tracking-tight mb-2">Upload do Arquivo CSV</h4>
-            <p className="text-sm text-muted-foreground font-medium mb-8 text-center max-w-xs">
+            <p className="text-sm text-muted-foreground font-medium mb-4 text-center max-w-xs">
               Selecione um arquivo .csv com os dados dos leads.
             </p>
-            <input 
-              type="file" 
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 p-3 rounded-xl mb-8 flex gap-2 w-full max-w-sm">
+              <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={16} />
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 font-medium leading-relaxed">
+                <strong>Atenção:</strong> A primeira linha do seu arquivo CSV deve, obrigatoriamente, conter o título das colunas (ex: <i>Nome</i>, <i>WhatsApp</i>).
+              </p>
+            </div>
+            <input
+              type="file"
               ref={fileInputRef}
               onChange={handleFileUpload}
               accept=".csv"
@@ -159,11 +164,11 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
 
       case 'mapping':
         return (
-          <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3">
+          <div className="space-y-6 text-left">
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 p-4 rounded-2xl flex gap-3">
               <AlertCircle className="text-blue-500 shrink-0" size={20} />
-              <p className="text-xs text-blue-700 font-medium leading-relaxed">
-                Relacione as colunas do seu arquivo com os campos do sistema. 
+              <p className="text-xs text-blue-700 dark:text-blue-400 font-medium leading-relaxed">
+                Relacione as colunas do seu arquivo com os campos do sistema.
                 Os campos <strong>Nome</strong> e <strong>WhatsApp</strong> são obrigatórios.
               </p>
             </div>
@@ -174,10 +179,10 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
                   <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
                     {field === 'nome' ? 'Nome (Obrigatório)' : field === 'whatsapp' ? 'WhatsApp (Obrigatório)' : field}
                   </label>
-                  <select 
+                  <select
                     value={mapping[field] || ""}
-                    onChange={(e) => setMapping({...mapping, [field]: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm font-bold text-foreground focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                    onChange={(e) => setMapping({ ...mapping, [field]: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-border bg-background dark:bg-slate-900 text-sm font-bold text-foreground focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
                   >
                     <option value="">-- Não importar --</option>
                     {headers.map(h => (
@@ -199,20 +204,20 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
                 Prévia dos Dados ({csvData.length} registros)
               </h4>
             </div>
-            
-            <div className="border border-border rounded-3xl overflow-hidden shadow-inner bg-slate-50/50">
+
+            <div className="border border-border rounded-3xl overflow-hidden shadow-inner bg-slate-50/50 dark:bg-slate-900/50">
               <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                 <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-white border-b border-border z-10">
+                  <thead className="sticky top-0 bg-background dark:bg-slate-950 border-b border-border z-10">
                     <tr>
                       <th className="px-4 py-3 text-left font-black text-muted-foreground uppercase tracking-widest">Nome</th>
                       <th className="px-4 py-3 text-left font-black text-muted-foreground uppercase tracking-widest">WhatsApp</th>
                       <th className="px-4 py-3 text-left font-black text-muted-foreground uppercase tracking-widest">Tags</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-border text-left">
                     {csvData.slice(0, 10).map((row, i) => (
-                      <tr key={i} className="hover:bg-white transition-colors">
+                      <tr key={i} className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                         <td className="px-4 py-3 font-bold text-foreground">{row[mapping.nome]}</td>
                         <td className="px-4 py-3 text-muted-foreground">{row[mapping.whatsapp]}</td>
                         <td className="px-4 py-3 text-muted-foreground">{row[mapping.tags]}</td>
@@ -222,7 +227,7 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
                 </table>
               </div>
               {csvData.length > 10 && (
-                <div className="p-3 text-center border-t border-border bg-white">
+                <div className="p-3 text-center border-t border-border bg-background dark:bg-slate-950">
                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest italic">
                     Exibindo apenas os 10 primeiros registros...
                   </p>
@@ -244,7 +249,7 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
                 {importResults?.created} leads foram importados com sucesso.
               </p>
             </div>
-            
+
             {importResults?.errors && importResults.errors.length > 0 && (
               <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl text-left max-h-[150px] overflow-y-auto custom-scrollbar">
                 <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -272,15 +277,15 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
       title="Importar Leads"
       description={
         step === 'mapping' ? 'Defina como as colunas do CSV serão tratadas.' :
-        step === 'preview' ? 'Verifique se os dados estão corretos antes de importar.' :
-        step === 'result' ? 'Confira o resultado do processamento em massa.' :
-        'Importe múltiplos respondentes através de um arquivo CSV.'
+          step === 'preview' ? 'Verifique se os dados estão corretos antes de importar.' :
+            step === 'result' ? 'Confira o resultado do processamento em massa.' :
+              'Importe múltiplos respondentes através de um arquivo CSV.'
       }
       saveLabel={
         step === 'upload' ? undefined :
-        step === 'mapping' ? 'Ver Prévia' :
-        step === 'preview' ? 'Iniciar Importação' :
-        'Concluir'
+          step === 'mapping' ? 'Ver Prévia' :
+            step === 'preview' ? 'Iniciar Importação' :
+              'Concluir'
       }
       onSave={step === 'upload' ? undefined : () => {
         if (step === 'mapping') setStep('preview');
@@ -290,10 +295,10 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
           setTimeout(reset, 300);
         }
       }}
-      isLoading={createLeadMutation.isPending}
+      isLoading={importLeadsMutation.isPending}
       footer={step !== 'upload' && step !== 'result' ? (
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => step === 'mapping' ? setStep('upload') : setStep('mapping')}
           className="h-12 rounded-xl font-bold text-slate-500"
         >
@@ -313,14 +318,14 @@ export function ImportLeadsWizard({ isOpen, onClose }: ImportWizardProps) {
               const Icon = s.icon;
               const isActive = step === s.id;
               const isPast = arr.findIndex(x => x.id === step) > i;
-              
+
               return (
                 <React.Fragment key={s.id}>
                   <div className="flex items-center gap-3">
                     <div className={cn(
                       "h-10 w-10 rounded-2xl flex items-center justify-center transition-all",
-                      isActive ? "bg-primary text-white shadow-lg shadow-primary/20 scale-110" : 
-                      isPast ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400"
+                      isActive ? "bg-primary text-white shadow-lg shadow-primary/20 scale-110" :
+                        isPast ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400"
                     )}>
                       {isPast ? <CheckCircle2 size={20} /> : <Icon size={20} />}
                     </div>

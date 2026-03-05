@@ -13,7 +13,9 @@ export async function GET(
     const link = await TrackingLinkService.getValidLink(hash);
 
     if (!link) {
-      return NextResponse.redirect(new URL("/404", req.url));
+      const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (host ? `https://${host}` : "https://participa.govteam.com.br");
+      return NextResponse.redirect(new URL("/404", baseUrl));
     }
 
     // 2. Registrar visualização se ainda não foi registrado (apenas para links de campanha)
@@ -35,10 +37,28 @@ export async function GET(
       ]);
     }
 
-    // 3. Redirecionar para a página de votação
-    return NextResponse.redirect(new URL(`/vote/${hash}`, req.url));
+    // 3. Reconstruir a base URL para não vazar 0.0.0.0 do contêiner Docker
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+    if (!baseUrl && host) {
+      const protocol = req.headers.get("x-forwarded-proto") || "https";
+      baseUrl = `${protocol}://${host}`;
+    }
+
+    if (!baseUrl) {
+      baseUrl = "https://participa.govteam.com.br"; // fallback seguro final
+    }
+
+    // 4. Redirecionar para a página de votação
+    return NextResponse.redirect(new URL(`/vote/${hash}`, baseUrl));
   } catch (error) {
     console.error("[TRACKING_REDIRECT_ERROR]", error);
-    return NextResponse.redirect(new URL("/", req.url));
+
+    // Tratamento de Erro Seguro Reconstruindo a Base
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (host ? `https://${host}` : "https://participa.govteam.com.br");
+
+    return NextResponse.redirect(new URL("/", baseUrl));
   }
 }

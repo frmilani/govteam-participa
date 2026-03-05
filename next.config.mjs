@@ -10,6 +10,7 @@ const formbuilderDistEntry = path.resolve(__dirname, '../formbuilder/dist-packag
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    output: 'standalone',
     // basePath removido — roteamento por path é feito pelo Traefik (StripPrefix)
     turbopack: {},
     // Em produção: Traefik recebe /participa/* → strip → encaminha /* para este container

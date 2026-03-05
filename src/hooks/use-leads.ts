@@ -147,7 +147,7 @@ export function useImportLeads() {
         const error: any = await res.json();
         throw new Error(error.error || "Erro ao importar leads");
       }
-      return res.json() as Promise<{ count: number }>;
+      return res.json() as Promise<{ created: number; errors: string[] }>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });

@@ -16,6 +16,7 @@ export async function generateMetadata(
             return {
                 title: 'Votação Online | Participa',
                 description: 'Participe da nossa pesquisa e deixe sua opinião.',
+                colorScheme: 'light',
             };
         }
 
@@ -29,6 +30,7 @@ export async function generateMetadata(
         return {
             title: `${title} | Participa`,
             description,
+            colorScheme: 'light',
             openGraph: {
                 title,
                 description,
@@ -46,10 +48,16 @@ export async function generateMetadata(
         return {
             title: 'Votação Online',
             description: 'Participe da nossa pesquisa.',
+            colorScheme: 'light',
         };
     }
 }
 
 export default function VoteLayout({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+    return (
+        // Força light mode: previne que o dark mode do celular pinte radio/inputs com fundo preto
+        <div style={{ colorScheme: 'light' }}>
+            {children}
+        </div>
+    );
 }

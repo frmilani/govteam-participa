@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { prisma } from '../prisma';
+import { UazApiService } from './uazapi-service';
 
 const WHATSAPP_API_URL = process.env.WHATSAPP_API_URL;
 const WHATSAPP_API_KEY = process.env.WHATSAPP_API_KEY;
@@ -22,6 +24,50 @@ export class WhatsappService {
     },
   });
 
+  private static tokenCache: Record<string, string> = {};
+
+  static async resolveToken(instanceId: string): Promise<string> {
+    // 1. Tenta cache em memória primeiro
+    if (this.tokenCache[instanceId]) {
+      return this.tokenCache[instanceId];
+    }
+
+    // 2. Tenta buscar do banco de dados do Participa
+    const dbInstance = await prisma.whatsappInstance.findUnique({
+      where: { instanceId }
+    });
+
+    if (dbInstance?.token) {
+      this.tokenCache[instanceId] = dbInstance.token;
+      return dbInstance.token;
+    }
+
+    // 3. Fallback: Lista instâncias na UazAPI e pega o token
+    console.log(`[WhatsappService] Fallback: Buscando token na UazAPI para instância ${instanceId}`);
+    try {
+      const instances = await UazApiService.listInstances();
+      const found = instances.find((i: any) => i.name === instanceId || i.instanceName === instanceId);
+
+      if (found && found.token) {
+        this.tokenCache[instanceId] = found.token;
+
+        // Salva o token no banco para a próxima vez se o BD existir
+        if (dbInstance) {
+          await prisma.whatsappInstance.update({
+            where: { id: dbInstance.id },
+            data: { token: found.token }
+          });
+        }
+        return found.token;
+      }
+    } catch (e) {
+      console.warn("[WhatsappService] Erro ao buscar fallback na UazAPI:", e);
+    }
+
+    // Retorna próprio ID se bater parede (comportamento legado para Evolution se for o caso)
+    return instanceId;
+  }
+
   /**
    * Envia uma mensagem de texto via WhatsApp
    */
@@ -33,9 +79,19 @@ export class WhatsappService {
     }
 
     try {
+      const actualToken = await this.resolveToken(instanceId);
+
+      const config = {
+        headers: {
+          'token': actualToken,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      };
+
       // Se tiver mediaUrl, usamos o endpoint de media
       if (message.mediaUrl && message.type !== 'text') {
-        const endpoint = `/message/sendMedia/${instanceId}`;
+        const endpoint = `/message/sendMedia/${instanceId}`; // Manter legado ou se houver rota nova, /send/media
 
         // Mapear tipos Evolution: image, video, document, audio
         let mediaType = 'image';
@@ -50,12 +106,12 @@ export class WhatsappService {
           delay: 1200,
         };
 
-        const response = await this.client.post(endpoint, payload);
+        const response = await this.client.post(endpoint, payload, config);
         return response.data;
       }
 
-      // Caso contrário, enviamos texto simples
-      const endpoint = `/message/sendText/${instanceId}`;
+      // Caso contrário, enviamos texto simples (Nova API UAZAPI)
+      const endpoint = `/send/text`;
       const payload = {
         number: this.formatNumber(message.to),
         text: message.text,
@@ -63,7 +119,7 @@ export class WhatsappService {
         linkPreview: true
       };
 
-      const response = await this.client.post(endpoint, payload);
+      const response = await this.client.post(endpoint, payload, config);
       return response.data;
     } catch (error: any) {
       console.error("[WhatsappService] Erro ao enviar mensagem:", error.response?.data || error.message);

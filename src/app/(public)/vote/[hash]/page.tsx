@@ -306,6 +306,7 @@ export default function VotePage() {
   const [researchConfig, setResearchConfig] = useState<any>(null);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<any>({});
+  const [initialValues, setInitialValues] = useState<any>({});
   const [lead, setLead] = useState<any>(null);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [surveyStatus, setSurveyStatus] = useState<{
@@ -353,6 +354,25 @@ export default function VotePage() {
           });
         };
 
+        // ── VERIFICAÇÃO IMEDIATA: link já respondido → vai direto para thanks ──
+        // Esta verificação acontece ANTES de qualquer processamento, para que o usuário
+        // nunca veja o formulário se o link já foi utilizado.
+        if (data.status === 'RESPONDIDO') {
+          clearLocalStorage();
+          setThankYouMessage({
+            titulo: "Voto Já Registrado! 🎉",
+            mensagem: "Identificamos que você já participou desta votação. Fique tranquilo, seu voto está seguro!"
+          });
+          // Precisamos do enquete para renderizar o ThankYouScreen
+          const enqueteFallback = data.campanha?.enquete;
+          if (enqueteFallback) setEnquete(enqueteFallback);
+          const themeFallback = data.schema?.schema?.theme;
+          if (themeFallback) setThemeConfig(themeFallback as ThemeConfig | undefined);
+          setStage('thanks');
+          setLoading(false);
+          return;
+        }
+
         const rawElements = data.schema?.schema?.elements || [];
         const enqueteData = data.campanha?.enquete;
         const processedElements: FormElement[] = enqueteData?.organizationId
@@ -370,18 +390,6 @@ export default function VotePage() {
 
         setThemeConfig(theme as ThemeConfig | undefined);
         setEnquete(enqueteData);
-
-        // Se o link já foi respondido, mostrar tela amigável imediatamente (E5.3)
-        if (data.status === 'RESPONDIDO') {
-          setThankYouMessage({
-            titulo: "Voto Já Registrado! 🎉",
-            mensagem: "Identificamos que você já participou desta votação. Fique tranquilo, seu voto está seguro!"
-          });
-          clearLocalStorage();
-          setStage('thanks');
-          setLoading(false);
-          return;
-        }
 
         // Load research config and inject into form schema
         const hasResearchEngine = !!((enqueteData as any).modoColeta);
@@ -415,7 +423,13 @@ export default function VotePage() {
         }
 
         const savedData = localStorage.getItem(`vote_draft_${hash}`);
-        if (savedData) { try { setFormData(JSON.parse(savedData)); } catch (e) { /* */ } }
+        if (savedData) {
+          try {
+            const parsed = JSON.parse(savedData);
+            setFormData(parsed);
+            setInitialValues(parsed); // Seta uma única vez
+          } catch (e) { /* */ }
+        }
         const savedStep = localStorage.getItem(`vote_step_${hash}`);
         if (savedStep) { setActiveStepIndex(parseInt(savedStep, 10) || 0); }
 
@@ -578,13 +592,26 @@ export default function VotePage() {
           }
           .voting-form-container > div.rounded-xl.border.bg-card { background-color: transparent !important; border: none !important; box-shadow: none !important; }
           
+          /* FORÇA LIGHT MODE: impede que o dark mode do celular pinte os elementos nativos (radio/input) */
+          .voting-form-container, .voting-form-container * {
+            color-scheme: light !important;
+          }
+          @media (prefers-color-scheme: dark) {
+            .voting-form-container input[type="radio"],
+            .voting-form-container input[type="checkbox"] {
+              background-color: white !important;
+              color-scheme: light !important;
+            }
+          }
+
           /* Ajuste de espaçamento entre blocos de campos */
           .voting-form-container .space-y-8 > .col-span-12,
           .voting-form-container .grid > .col-span-12 {
             margin-bottom: -1rem !important;
           }
 
-          .voting-form-container input, .voting-form-container textarea,
+          /* Input de Texto Padrão (Isola Radio e Checkbox do fundo branco gigante) */
+          .voting-form-container input:not([type="radio"]):not([type="checkbox"]), .voting-form-container textarea,
           .voting-form-container .select-trigger, .voting-form-container [role="combobox"] {
             background-color: ${isBold ? '#ffffff' : isNeon ? '#000000' : '#ffffff'} !important;
             border: ${isBold ? '3px solid #000000' : isNeon ? '1px solid #3f3f46' : '1px solid #d4c5b0'} !important;
@@ -592,8 +619,40 @@ export default function VotePage() {
             border-radius: ${isBold ? '0.5rem' : isNeon ? '0' : '0.75rem'} !important;
             color: ${isNeon ? '#ecfeff' : '#1e293b'} !important; min-height: 2.75rem;
             padding-left: 1rem; padding-right: 1rem; transition: all 0.2s ease;
+            width: 100% !important; max-width: 100% !important; box-sizing: border-box !important;
           }
-          .voting-form-container button:not([role="combobox"]):not(.select-trigger):not([aria-label="Clear"]) {
+          
+          /* Estilo para Options/Radios: Mantém o tamanho base e a cor primária via accent */
+          .voting-form-container input[type="radio"], .voting-form-container input[type="checkbox"] {
+            accent-color: ${template.accentColor || primaryColor} !important;
+            width: 1.25rem !important; height: 1.25rem !important;
+            cursor: pointer;
+          }
+
+          /* Overrides Adicionais para Componentes Radix UI / Shadcn UI Radio */
+          .voting-form-container button[role="radio"], .voting-form-container button[role="checkbox"] {
+             width: 1.25rem !important; height: 1.25rem !important; padding: 0 !important;
+             border: 2px solid ${isNeon ? '#3f3f46' : '#d4c5b0'} !important;
+             background-color: transparent !important; box-shadow: none !important;
+             display: inline-flex !important; align-items: center !important; justify-content: center !important;
+          }
+          .voting-form-container button[role="radio"] { border-radius: 50% !important; }
+          .voting-form-container button[role="checkbox"] { border-radius: 4px !important; }
+          .voting-form-container button[role="radio"][aria-checked="true"], .voting-form-container button[role="radio"][data-state="checked"],
+          .voting-form-container button[role="checkbox"][aria-checked="true"], .voting-form-container button[role="checkbox"][data-state="checked"] {
+             border-color: ${template.accentColor || primaryColor} !important;
+             background-color: transparent !important;
+          }
+          /* O bolinho do radio / check do checkbox */
+          .voting-form-container button[role="radio"] > span[data-state="checked"] {
+             background-color: ${template.accentColor || primaryColor} !important;
+             width: 0.6rem !important; height: 0.6rem !important; border-radius: 50% !important; display: block !important;
+          }
+          .voting-form-container button[role="radio"] svg, .voting-form-container button[role="checkbox"] svg {
+             color: ${template.accentColor || primaryColor} !important; fill: currentColor; stroke: currentColor;
+          }
+
+          .voting-form-container button:not([role="combobox"]):not(.select-trigger):not([aria-label="Clear"]):not([role="radio"]):not([role="checkbox"]) {
             background-color: ${isPremium ? '#c9a962' : isNeon ? '#06b6d4' : primaryColor} !important;
             color: ${isBold ? '#000000' : isNeon ? '#000000' : 'white'} !important;
             border-radius: ${isBold ? '0.5rem' : '0.5rem'} !important;
@@ -613,17 +672,35 @@ export default function VotePage() {
             border-left: none !important;
             padding-left: 0 !important;
             font-weight: 500 !important;
-            font-size: 0.875rem !important;
+            font-size: 0.95rem !important;
             display: inline !important;
             margin-bottom: 0 !important;
+            cursor: pointer;
           }
 
           /* Compactar Gap entre as opções de Radio/Checkbox */
           .voting-form-container .flex-col.gap-3 {
-            gap: 0.4rem !important;
+            gap: 0.15rem !important;
           }
           .voting-form-container .flex.items-center.gap-2 {
-            gap: 0.4rem !important;
+            gap: 0.25rem !important;
+          }
+          .voting-form-container .form-item {
+             margin-top: 0.5rem !important;
+          }
+          
+          /* Forçar todos os botões de ação (voltar/proximo/finalizar) no footer a serem 50/50 em flex */
+          .voting-form-container > div > div.mt-8.flex,
+          .voting-form-container > form > div.mt-8.flex {
+            display: flex !important;
+            width: 100% !important;
+            gap: 0.75rem !important;
+          }
+          .voting-form-container > div > div.mt-8.flex button,
+          .voting-form-container > form > div.mt-8.flex button {
+            flex: 1 1 0% !important;
+            width: 100% !important;
+            justify-content: center !important;
           }
         `}</style>
 
@@ -702,7 +779,7 @@ export default function VotePage() {
                   <div className={template.bannerOverlay} />
                 </div>
 
-                <div className="flex-1 w-full max-w-4xl mx-auto -mt-16 lg:mt-0 p-4 md:p-8 lg:p-12 relative z-10 flex flex-col justify-start lg:justify-center min-h-0">
+                <div className="flex-1 w-full max-w-4xl mx-auto -mt-16 lg:mt-0 px-2 sm:px-4 md:p-8 lg:p-12 relative z-10 flex flex-col justify-start lg:justify-center min-h-0">
 
                   {/* Desktop Progress Bar */}
                   <div className="hidden lg:block w-full mb-8">
@@ -717,7 +794,7 @@ export default function VotePage() {
                     },
                     radius: template.cardRadius || '1rem'
                   }}>
-                    <div className={`w-full ${template.cardBg} rounded-[2.5rem] md:rounded-[3rem] ${template.cardShadow} ${template.cardBorder} overflow-hidden shadow-2xl flex-shrink-0`}>
+                    <div className={`w-full ${template.cardBg} rounded-[1.5rem] sm:rounded-[2.5rem] md:rounded-[3rem] ${template.cardShadow} ${template.cardBorder} overflow-hidden shadow-2xl flex-shrink-0`}>
 
                       {/* Mobile Header */}
                       <div className={`lg:hidden p-6 border-b ${isPremium ? 'border-[#d4c5b0]/30' : 'border-slate-100'} text-center`}>
@@ -729,13 +806,13 @@ export default function VotePage() {
                         <h1 className={`text-xl font-black ${template.headingColor} leading-tight`}>{enquete?.titulo || "Votação"}</h1>
                       </div>
 
-                      <div className="px-4 md:px-6 lg:px-10 pb-10 pt-2 voting-form-container overflow-visible">
+                      <div className="px-0 sm:px-6 lg:px-10 pb-8 pt-4 voting-form-container overflow-visible w-full max-w-[100vw]">
                         {elements.length > 0 ? (
                           <FormRenderer
                             elements={elements}
                             onSubmit={handleSubmit}
                             onChange={handleFormChange}
-                            initialValues={formData}
+                            initialValues={initialValues} // Usando valores estáticos do carregamento
                             initialStepIndex={activeStepIndex}
                             onStepChange={handleStepChange}
                           />

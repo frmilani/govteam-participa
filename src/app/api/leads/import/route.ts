@@ -25,6 +25,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    // HPAC: check create permission
+    const { checkPermission, hpacDeniedResponse } = await import("@/lib/hub-permissions");
+    const perm = await checkPermission(
+      session.user.id,
+      session.user.organizationId,
+      'participa:lead',
+      'create'
+    );
+
+    if (!perm.allowed) {
+      return hpacDeniedResponse('participa:lead', 'create');
+    }
+
     const body = await req.json();
     const validatedData = importLeadSchema.parse(body);
 
@@ -37,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     for (const leadData of validatedData.leads) {
       try {
-        await LeadService.createLead(session.user.organizationId, {
+        await LeadService.upsertImportLead(session.user.organizationId, {
           ...leadData,
           email: leadData.email || null,
           origem: "IMPORTACAO" as any,

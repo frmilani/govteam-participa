@@ -375,6 +375,103 @@ export class LeadService {
     }
   }
 
+  static async upsertImportLead(
+    organizationId: string,
+    data: {
+      nome: string;
+      whatsapp: string;
+      email?: string | null;
+      sexo?: Sexo | null;
+      telefone?: string | null;
+      facebook?: string | null;
+      instagram?: string | null;
+      tagIds?: string[];
+      origem?: OrigemLead;
+      unitId?: string | null;
+    }
+  ) {
+    const formattedWhatsApp = this.formatWhatsApp(data.whatsapp);
+
+    // Look for existing lead by either WhatsApp or Email
+    const existingLead = await prisma.lead.findFirst({
+      where: {
+        organizationId,
+        OR: [
+          { whatsapp: formattedWhatsApp },
+          ...(data.email ? [{ email: { equals: data.email, mode: "insensitive" as const } }] : []),
+        ],
+      },
+    });
+
+    if (existingLead) {
+      // Connect existing tags keeping the old ones and adding the new ones
+      const currentTags = await prisma.leadTag.findMany({
+        where: { leadId: existingLead.id },
+        select: { tagId: true },
+      });
+      const currentTagIds = currentTags.map(t => t.tagId);
+
+      let tagsToConnect: string[] = [];
+      if (data.tagIds) {
+        tagsToConnect = data.tagIds.filter(id => !currentTagIds.includes(id));
+      }
+
+      return await prisma.lead.update({
+        where: { id: existingLead.id },
+        data: {
+          nome: data.nome || existingLead.nome, // Update name if provided, or keep existing
+          whatsapp: formattedWhatsApp,
+          email: data.email || existingLead.email,
+          sexo: data.sexo || existingLead.sexo,
+          telefone: data.telefone || existingLead.telefone,
+          facebook: data.facebook || existingLead.facebook,
+          instagram: data.instagram || existingLead.instagram,
+          unitId: data.unitId || existingLead.unitId,
+          tags: tagsToConnect.length > 0
+            ? {
+              create: tagsToConnect.map((tagId) => ({
+                tag: { connect: { id: tagId } },
+              })),
+            }
+            : undefined,
+        },
+      });
+    } else {
+      // Create new lead
+      const totalCoupons = this.calculateCoupons({
+        whatsapp: formattedWhatsApp,
+        email: data.email,
+        instagram: data.instagram,
+        statusVerificacao: VerificacaoStatus.NAO_VERIFICADO
+      });
+
+      return await prisma.lead.create({
+        data: {
+          organizationId,
+          nome: data.nome,
+          whatsapp: formattedWhatsApp,
+          email: data.email,
+          sexo: data.sexo,
+          telefone: data.telefone,
+          facebook: data.facebook,
+          instagram: data.instagram,
+          unitId: data.unitId,
+          origem: data.origem || OrigemLead.IMPORTACAO,
+          cupons: totalCoupons,
+          statusVerificacao: VerificacaoStatus.NAO_VERIFICADO,
+          consentimentoEm: new Date(),
+          tags: data.tagIds
+            ? {
+              create: data.tagIds.map((tagId) => ({
+                tag: { connect: { id: tagId } },
+              })),
+            }
+            : undefined,
+        },
+      });
+    }
+  }
+
   static async deleteLead(id: string, organizationId: string) {
 
     return await prisma.lead.delete({

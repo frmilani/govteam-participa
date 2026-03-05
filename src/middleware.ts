@@ -45,6 +45,7 @@ async function resolveTenant(hostname: string): Promise<string | null> {
 
 // Rotas que não requerem autenticação
 const PUBLIC_ROUTES = [
+  /^\/api\/health$/,               // Healthcheck (Docker Swarm)
   /^\/r\/.+/,                      // Tracking de links
   /^\/vote\/.+/,                   // Landing page de votação
   /^\/opt-out\/.+/,                // Opt-out de leads
@@ -65,6 +66,11 @@ const PUBLIC_ROUTES = [
 export default auth(async (req) => {
   const { pathname } = req.nextUrl
   const hostname = req.headers.get("host") || ""
+
+  // Early exit: healthcheck não precisa de tenant nem auth
+  if (pathname === '/api/health') {
+    return NextResponse.next()
+  }
 
   // 1. Extrair informações de Tenant
   const tenantSlug = req.headers.get("x-tenant-slug") || await resolveTenant(hostname)
